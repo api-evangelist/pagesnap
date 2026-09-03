@@ -1,0 +1,58 @@
+generated: '2026-09-02'
+method: searched
+source: https://pagesnap.142-93-197-141.sslip.io/docs
+asyncapi_spec: null
+asyncapi_note: >-
+  Pagesnap publishes no AsyncAPI document. Probed /asyncapi.json and /asyncapi.yaml alongside the
+  OpenAPI discovery sweep; the spec itself declares an empty `webhooks` object and no callbacks.
+  The event surface below is documented in prose and in the Monitor schema, so it is captured as a
+  webhook catalog rather than fabricated as an AsyncAPI file.
+surface: outbound-webhook
+scope: change monitors only
+subscription:
+  operation_id: createMonitor
+  field: webhook_url
+  constraints: https?:// URL, max 4096 chars, must pass the same public-address policy as a monitored target
+  auth_required: true
+security:
+  signature_header: X-Pagesnap-Signature
+  algorithm: 'sha256=<hex HMAC-SHA256>'
+  signed_over: the exact JSON request body, including its timestamp
+  secret_delivery: >-
+    webhook_secret is returned exactly once, in the createMonitor 201 response (MonitorWithSecret).
+    listMonitors deliberately omits it and there is no rotation or re-reveal operation.
+  verification_guidance: >-
+    Verify the exact raw bytes with a constant-time comparison BEFORE parsing, then reject
+    timestamps outside your replay window.
+delivery:
+  timeout_seconds: 10
+  retries: 3 after the initial attempt
+  redirects_followed: false
+  response_body: discarded
+  address_policy: The destination is re-resolved on every attempt against the same SSRF policy as monitored targets.
+  disable_rule: >-
+    After 20 consecutive failed change deliveries the webhook is disabled and the monitor records
+    a generic note. The monitor itself stays active.
+native_integrations:
+  - Slack (injection-safe native payload)
+  - Discord (injection-safe native payload)
+events:
+  - name: monitor.change
+    trigger: >-
+      A scheduled or manual monitor check detects a change above threshold_percent in text, visual
+      or meta mode.
+    modes: [text, visual, meta]
+    intervals: ['1h', '6h', '24h']
+    payload_schema: null
+    payload_note: >-
+      The provider documents the signing scheme, delivery semantics and failure behavior but does
+      not publish the change-notification body schema. Recorded as null rather than guessed.
+poll_alternatives:
+  - operation_id: getMonitor
+    note: Returns the monitor plus recent check results - the pull equivalent of the webhook.
+  - operation_id: checkMonitor
+    note: Runs a check immediately.
+  - operation_id: getCrawlJob
+    note: >-
+      Asynchronous crawl and llms-txt jobs have NO webhook; completion is discovered by polling
+      status_url. This is the one place where a callback would help and none is offered.

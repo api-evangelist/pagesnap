@@ -1,0 +1,103 @@
+overlay: 1.0.0
+info:
+  title: API Evangelist enrichment overlay for the Pagesnap API
+  version: 1.0.0
+extends: https://pagesnap.142-93-197-141.sslip.io/openapi.json
+x-generated: '2026-09-02'
+x-method: generated
+x-source: openapi/pagesnap-openapi.json + live probes on 2026-09-02
+x-note: >-
+  Records the enrichment pass's findings as non-destructive additions. The upstream document is
+  never mutated; the scorer parses the original spec, so this overlay improves derived artifacts
+  and downstream tooling, not the raw content score.
+actions:
+  - target: $.info
+    update:
+      x-apis-io-enrichment:
+        enriched: '2026-09-02'
+        artifacts:
+          openapi: openapi/pagesnap-openapi.json
+          authentication: authentication/pagesnap-authentication.yml
+          conventions: conventions/pagesnap-conventions.yml
+          errors: errors/pagesnap-problem-types.yml
+          lifecycle: lifecycle/pagesnap-lifecycle.yml
+          rate_limits: rate-limits/pagesnap-rate-limits.yml
+          plans: plans/pagesnap-plans-pricing.yml
+          mcp: mcp/pagesnap-mcp.yml
+          tool_crosswalk: mcp/pagesnap-tool-crosswalk.yml
+          a2a: a2a/pagesnap-a2a.yml
+          well_known: well-known/pagesnap-well-known.yml
+          data_model: data-model/pagesnap-data-model.yml
+          conformance: conformance/pagesnap-conformance.yml
+          webhooks: asyncapi/pagesnap-webhooks.yml
+          skills: skills/_index.yml
+  - target: $.info
+    update:
+      x-runtime-headers:
+        request: []
+        response:
+          - X-Plan
+          - X-RateLimit-Limit
+          - X-RateLimit-Remaining
+          - X-RateLimit-Scope
+          - X-Cache
+          - X-Render-Ms
+          - Retry-After
+          - ETag
+        note: >-
+          Observed live on GET /v1/meta on 2026-09-02 but not declared in the upstream
+          components.responses headers block. X-RateLimit-Scope is the useful one - it names WHICH
+          window the limit/remaining pair describes.
+  - target: $.info
+    update:
+      x-agent-surfaces:
+        openapi: https://pagesnap.142-93-197-141.sslip.io/openapi.json
+        mcp:
+          endpoint: https://pagesnap.142-93-197-141.sslip.io/mcp
+          transport: streamable-http
+          anonymous: true
+          tools: 11
+        a2a:
+          card: https://pagesnap.142-93-197-141.sslip.io/.well-known/agent-card.json
+          endpoint: https://pagesnap.142-93-197-141.sslip.io/a2a
+          skills: 6
+          grade: near-conformant
+        x402:
+          manifest: https://pagesnap.142-93-197-141.sslip.io/.well-known/x402
+          network: 'eip155:8453'
+          asset: USDC
+          routes: 7
+        ard: https://pagesnap.142-93-197-141.sslip.io/.well-known/ard.json
+        api_catalog: https://pagesnap.142-93-197-141.sslip.io/.well-known/api-catalog
+        llms_txt: https://pagesnap.142-93-197-141.sslip.io/llms.txt
+  - target: $.info
+    update:
+      x-gaps:
+        - id: no-idempotency-key
+          detail: >-
+            No Idempotency-Key header on any write operation (createKey, createMonitor,
+            createCheckout, verifyLinkGrant, createSupportTicket). x402 replay protection covers
+            only the paid path.
+        - id: no-rfc9457
+          detail: >-
+            Errors are a custom {"error":{code,message,reason}} envelope with a closed 58-value
+            enum rather than application/problem+json.
+        - id: no-request-id
+          detail: No correlation-id request or response header is documented or observed.
+        - id: no-webhook-payload-schema
+          detail: >-
+            The monitor webhook's signing, delivery and disable semantics are fully documented but
+            the notification body schema is not published, and webhooks[] in the spec is empty.
+        - id: no-crawl-job-callback
+          detail: >-
+            Asynchronous crawl and llms-txt jobs are poll-only; a completion webhook would remove
+            the only mandatory polling loop in the API.
+        - id: unregistered-package-names
+          detail: >-
+            The CLI/MCP bridge installs from GitHub, while `pagesnap` on npm and PyPI belong to
+            unrelated authors - a name-confusion risk for anyone who guesses the install command.
+        - id: ip-based-hostname
+          detail: >-
+            The service runs on a free sslip.io wildcard-DNS hostname derived from its IP, so
+            every published URL breaks if the VPS address changes, and the registrable domain is
+            not under provider control.

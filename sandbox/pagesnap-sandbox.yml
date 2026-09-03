@@ -1,0 +1,39 @@
+generated: '2026-09-02'
+method: searched
+source: https://pagesnap.142-93-197-141.sslip.io/playground
+type: live-console
+test_mode: false
+note: >-
+  Pagesnap publishes no separate test/sandbox environment and no test-vs-live key split - keys are
+  a single ps_live_ prefix and every call hits production. What it publishes instead is an
+  anonymous allowance that makes production itself safely explorable: 30 requests/day per IP with
+  no signup, so an agent or a human can exercise the real API before creating anything. That is
+  the console this artifact records; there are no fixtures, test cards or time simulation, and
+  none are invented here.
+console:
+  url: https://pagesnap.142-93-197-141.sslip.io/playground
+  auth_required: false
+  key_handling: >-
+    A key saved as localStorage.ps_key is sent only in an Authorization header; otherwise
+    quota-backed operations use the anonymous allowance. Monitor operations require the key.
+  covers: [read, screenshot, pdf, meta, extract, diff, crawl, monitors]
+  features:
+    - Browser pre-capture actions (click, scroll, hide) built in the UI
+    - Device emulation across the Playwright device list
+    - Format, quality, viewport, timeout, wait_until and language controls
+    - Links straight to the matching contract section
+free_exploration:
+  anonymous_quota: 30 requests/day per IP, 10/minute, 1 concurrent
+  no_signup_tools: https://pagesnap.142-93-197-141.sslip.io/tools
+  keyless_paid_path: >-
+    /x402/v1/* returns a 402 carrying full machine-readable price and input schema BEFORE any
+    payment, which functions as a rehearsal step for the paid surface.
+test_values:
+  cards: []
+  accounts: []
+  fixtures: []
+  note: >-
+    None published. Do not synthesize any - the service has no test mode, so any "test" value
+    would be a real production call against a real target host.
+time_simulation:
+  supported: false

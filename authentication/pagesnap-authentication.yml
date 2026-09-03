@@ -1,0 +1,38 @@
+generated: '2026-09-02'
+method: derived
+source: openapi/pagesnap-openapi.json
+summary:
+  types:
+  - apiKey
+  - http
+  api_key_in:
+  - header
+  - query
+schemes:
+- name: bearer
+  type: http
+  scheme: bearer
+  bearerFormat: ps_live_…
+  description: Pagesnap API key.
+  sources:
+  - openapi/pagesnap-openapi.json
+- name: apiHeader
+  type: apiKey
+  in: header
+  parameter: X-API-Key
+  sources:
+  - openapi/pagesnap-openapi.json
+- name: apiQuery
+  type: apiKey
+  in: query
+  parameter: key
+  description: Compatibility only; headers avoid key leakage in URLs.
+  sources:
+  - openapi/pagesnap-openapi.json
+- name: x402
+  type: apiKey
+  in: header
+  parameter: PAYMENT-SIGNATURE
+  description: x402 v2 exact EIP-3009 USDC authorization on Base; X-PAYMENT is a legacy alias.
+  sources:
+  - openapi/pagesnap-openapi.json

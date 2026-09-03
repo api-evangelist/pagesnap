@@ -1,0 +1,153 @@
+generated: '2026-09-02'
+method: searched
+source: openapi/pagesnap-openapi.json + https://pagesnap.142-93-197-141.sslip.io/docs + live well-known probes
+note: >-
+  Pagesnap's market - web-page conversion for agents - has no domain standard body in the sense of
+  FHIR or ISO 20022. What it does have is the emerging agent-interop stack, and Pagesnap declares
+  and serves an unusual amount of it: MCP, A2A 1.0, x402 v2, ARD, RFC 9727, RFC 9116, llms.txt.
+  Every `conforms: true` below is backed by a document this pass fetched, not by a marketing claim.
+standards:
+  - id: openapi-3.1
+    conforms: true
+    evidence:
+      url: https://pagesnap.142-93-197-141.sslip.io/openapi.json
+      http_status: 200
+      detail: >-
+        openapi 3.1.0, 58 paths / 66 operations, unique operationIds throughout, 11 declared tags,
+        31 reusable components.schemas, 13 shared components.responses, 4 securitySchemes both
+        declared and applied. Also served as YAML at /openapi.yaml.
+  - id: mcp
+    conforms: true
+    version: '2025-06-18'
+    evidence:
+      url: https://pagesnap.142-93-197-141.sslip.io/mcp
+      http_status: 200
+      detail: >-
+        Anonymous initialize + tools/list + resources/list + prompts/list all answered over
+        Streamable HTTP. serverInfo pagesnap 1.2.0. Listed in the official MCP Registry as
+        io.sslip.142-93-197-141.pagesnap/pagesnap (status active).
+  - id: a2a
+    conforms: partial
+    version: 1.0.0
+    grade: near-conformant
+    evidence:
+      url: https://pagesnap.142-93-197-141.sslip.io/.well-known/agent-card.json
+      http_status: 200
+      detail: >-
+        JWS-signed agent card with 6 skills, JSONRPC supportedInterfaces binding, and a served
+        JWKS. protocolVersion is declared per-interface rather than top level. See
+        a2a/pagesnap-a2a.yml for the full grading.
+  - id: x402
+    conforms: true
+    version: v2 exact
+    evidence:
+      url: https://pagesnap.142-93-197-141.sslip.io/x402/v1/meta?url=https://example.com
+      http_status: 402
+      detail: >-
+        Live 402 carrying a base64 PAYMENT-REQUIRED challenge with scheme=exact,
+        network=eip155:8453, USDC asset contract, payTo address, maxTimeoutSeconds, EIP-3009
+        extra{name,version}, plus a bazaar extension containing an input/output JSON Schema for
+        the operation. A resource manifest is served at /.well-known/x402.
+  - id: eip-3009
+    conforms: true
+    evidence:
+      url: https://pagesnap.142-93-197-141.sslip.io/openapi.json
+      http_status: 200
+      detail: >-
+        securitySchemes.x402 declares "x402 v2 exact EIP-3009 USDC authorization on Base; X-PAYMENT
+        is a legacy alias". Settlement is independently verified against Base RPC receipts before
+        paid output is released (per /trust).
+  - id: rfc-9727-api-catalog
+    conforms: true
+    evidence:
+      url: https://pagesnap.142-93-197-141.sslip.io/.well-known/api-catalog
+      http_status: 200
+      detail: >-
+        linkset with anchor, service-desc (application/vnd.oai.openapi+json;version=3.1),
+        service-doc, and 13 item[] entries.
+  - id: rfc-9116-security-txt
+    conforms: true
+    evidence:
+      url: https://pagesnap.142-93-197-141.sslip.io/.well-known/security.txt
+      http_status: 200
+      detail: Contact, Expires (2027-08-31), Preferred-Languages, Canonical and Policy fields present.
+  - id: rfc-8594-deprecation-sunset
+    conforms: declared
+    evidence:
+      url: https://pagesnap.142-93-197-141.sslip.io/docs/stability
+      http_status: 200
+      detail: >-
+        Policy commits to Deprecation and Sunset headers plus a successor Link on any v1
+        retirement, with 90 days' notice. Nothing is currently deprecated, so no header could be
+        observed.
+  - id: ard-agentic-resource-discovery
+    conforms: true
+    version: '0.91'
+    evidence:
+      url: https://pagesnap.142-93-197-141.sslip.io/.well-known/ard.json
+      http_status: 200
+      detail: >-
+        application/ld+json manifest with @context agenticresourcediscovery.org/context/v1, a
+        urn:air identifier, capabilities[] and representativeQueries[]. Aliased at
+        /.well-known/ai-catalog.json.
+  - id: llms-txt
+    conforms: true
+    evidence:
+      url: https://pagesnap.142-93-197-141.sslip.io/llms.txt
+      http_status: 200
+      detail: >-
+        Conventional llms.txt with H1, blockquote summary, endpoint list and a Docs link section;
+        a compiled llms-full.txt (223 KB) is served alongside it.
+  - id: json-schema-2020-12
+    conforms: true
+    evidence:
+      url: https://pagesnap.142-93-197-141.sslip.io/x402/v1/meta?url=https://example.com
+      http_status: 402
+      detail: >-
+        The x402 bazaar extension embeds a $schema https://json-schema.org/draft/2020-12/schema
+        input/output description of the operation. MCP tool inputSchemas are JSON Schema objects.
+  - id: nip-89-nip-90
+    conforms: claimed
+    evidence:
+      url: https://pagesnap.142-93-197-141.sslip.io/log
+      http_status: 200
+      detail: >-
+        The operations log states a live Nostr Data Vending Machine (NIP-89 announcement, NIP-90
+        kind 5000) runs on eight relays. Not verified by this pass - no Nostr probe was performed.
+  - id: rfc-9457-problem-details
+    conforms: false
+    evidence:
+      url: https://pagesnap.142-93-197-141.sslip.io/openapi.json
+      http_status: 200
+      detail: >-
+        No application/problem+json anywhere. Errors use a custom {"error":{code,message,reason}}
+        envelope with a closed 58-value code enum. Functionally strong, formally non-conformant.
+  - id: oauth2
+    conforms: false
+    evidence:
+      url: https://pagesnap.142-93-197-141.sslip.io/.well-known/oauth-authorization-server
+      http_status: 404
+      detail: Bearer/API-key auth only; no OAuth, no OIDC, no scopes.
+  - id: idempotency-key
+    conforms: false
+    evidence:
+      url: https://pagesnap.142-93-197-141.sslip.io/openapi.json
+      http_status: 200
+      detail: No Idempotency-Key header in the contract. See conventions/pagesnap-conventions.yml.
+domain_standard:
+  applicable: false
+  reason: >-
+    Web-page-to-Markdown conversion has no sector standards body. The nearest applicable regime is
+    the agent-interop stack (MCP / A2A / x402 / ARD), recorded above rather than invented as a
+    domain conformance.
+certifications: []
+certifications_note: >-
+  None, and the provider says so directly: "Pagesnap is a small experimental service, not a
+  compliance-certified platform." No SOC 2, ISO 27001, PCI, HIPAA or FedRAMP is claimed. No
+  Compliance pointer is emitted, because there is no compliance program to point at.
+robots_compliance:
+  honors_robots_txt: true
+  detail: >-
+    Crawl and llms-txt generation are documented as robots-aware with a per-host delay. Pagesnap
+    never solves CAPTCHA or Turnstile and refuses private, localhost, link-local and
+    cloud-metadata destinations.

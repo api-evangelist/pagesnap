@@ -1,0 +1,77 @@
+generated: '2026-09-02'
+method: searched
+source: https://pagesnap.142-93-197-141.sslip.io/trust
+probe:
+  url: https://pagesnap.142-93-197-141.sslip.io/trust
+  http_status: 200
+title: Trust & transparency
+certifications: []
+compliance_programs: []
+disclaimer: >-
+  Quoted verbatim: "Pagesnap is a small experimental service, not a compliance-certified
+  platform." No SOC 2, ISO 27001, PCI DSS, HIPAA, GDPR-certification or FedRAMP claim appears
+  anywhere on the site. This artifact records a trust CENTER, not a compliance posture.
+operator_disclosure:
+  model: AI-operated within a human owner's scope
+  detail: >-
+    AI coding and operations agents build, deploy, monitor, document and support the service. A
+    human owner supplied the account and single VPS, set product scope, and retains ultimate
+    control of the server and payment wallet. The agents "are not a company officer or a
+    substitute for a human legal contact."
+  source_code: https://github.com/CalibratedGhosts/PageSnap
+  source_note: >-
+    Public for inspection; the README reserves all rights until the human owner selects a
+    software license. Public visibility is not a license grant.
+infrastructure:
+  regions: 1 (New York City)
+  failover: none
+  sla: none
+  detail: >-
+    "A host, network, process, browser, or operator failure can interrupt the whole service."
+    Process uptime on the stats page resets on deployment and is not service availability.
+security_practices:
+  transport: HTTP redirects to HTTPS; HSTS max-age 63072000 with includeSubDomains and preload.
+  key_storage: >-
+    High-entropy keys shown once and stored server-side as SHA-256 hashes only. The keys and
+    dashboard pages save the raw key in the browser's localStorage - the provider flags this as a
+    risk for anyone with access to that browser profile.
+  key_transport: >-
+    Query-string authentication is a documented compatibility option the provider itself advises
+    against; use the Authorization header.
+  ssrf: >-
+    Only public HTTP(S) destinations accepted; DNS results and every redirect re-checked;
+    localhost, private, link-local, cloud-metadata and blocked hostnames refused. "A valid public
+    URL can still return hostile content, so callers must treat output as untrusted."
+  render_isolation: >-
+    Fresh Playwright context per job, closed afterwards. No caller cookies or credentials are
+    accepted. Bounded by time, response size, concurrency and target-host limits. Described as
+    "useful isolation, not a claim that Chromium or the host can never have a vulnerability."
+  cookies: Public pages and public APIs set no tracking or login cookie.
+  payment_verification: >-
+    After the x402 facilitator reports settlement, Pagesnap independently queries Base RPC
+    providers and checks a mined successful receipt plus the exact USDC Transfer contract, payer,
+    recipient, amount and signed nonce before releasing paid output.
+security_reviews:
+  count: 3
+  date: '2026-09-02'
+  independent: false
+  disclaimer: >-
+    Quoted verbatim: "They were conducted by the project agents and are not independent
+    penetration tests or certifications."
+  scope:
+    - Request boundaries, batch quota enforcement, bounded caches
+    - Free-plan quotas, internal-metric exclusion, invoice caps, ticket/admin CSRF, redaction, payment reorg handling
+    - Independent x402 receipt verification, A2A isolation, crawl persistence, receipt revalidation, embed URL boundary, research-job timeouts
+data_handling:
+  sells_customer_data: false
+  detail: lifecycle/pagesnap-lifecycle.yml retention block carries the full published table.
+  caution: >-
+    The provider warns against putting secrets, credentials, personal data or signed URLs in
+    target URLs or support messages, and notes it cannot send outbound email so a lost raw key
+    cannot be recovered.
+public_evidence:
+  - https://pagesnap.142-93-197-141.sslip.io/status
+  - https://pagesnap.142-93-197-141.sslip.io/v1/status
+  - https://pagesnap.142-93-197-141.sslip.io/stats
+  - https://pagesnap.142-93-197-141.sslip.io/log
+  - https://github.com/CalibratedGhosts/PageSnap

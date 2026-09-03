@@ -1,0 +1,125 @@
+generated: '2026-09-02'
+method: probed
+source: https://pagesnap.142-93-197-141.sslip.io/mcp
+name: pagesnap
+server_version: 1.2.0
+protocol_version: '2025-06-18'
+deployment:
+  mode: both
+  endpoint: https://pagesnap.142-93-197-141.sslip.io/mcp
+  install: npx -y github:CalibratedGhosts/PageSnap mcp
+  package: https://github.com/CalibratedGhosts/PageSnap
+  auth: none
+  verified: probed
+  note: >-
+    Remote Streamable HTTP endpoint answered an anonymous initialize and a full tools/list on
+    2026-09-02 with no credential. The same repository is also a stdio bridge run straight from
+    GitHub (the package is NOT published to npm — see packages/pagesnap-packages.yml), and a
+    Claude Code marketplace plugin. auth: none because a key is optional and only raises quota;
+    three of the eleven tools additionally require a key.
+registry:
+  name: io.sslip.142-93-197-141.pagesnap/pagesnap
+  url: https://registry.modelcontextprotocol.io/v0/servers?search=pagesnap
+  status: active
+  published_at: '2026-09-02T14:41:43Z'
+  transport: streamable-http
+  note: Listed in the official MCP Registry via HTTP domain verification.
+transport:
+  type: streamable-http
+  stateless: true
+  accept: application/json, text/event-stream
+capabilities:
+  tools: true
+  resources: true
+  prompts: true
+  logging: false
+instructions: >-
+  Pagesnap turns public URLs into clean Markdown, screenshots, PDFs, metadata, structured data, or
+  crawls. Every content tool advertises an optional keyless x402 HTTP equivalent in namespaced
+  _meta; those routes use exact USDC payments on Base and do not change the MCP session's plan.
+tools_file: mcp/pagesnap-mcp-tools.json
+tool_count: 11
+tools:
+  - name: read_url
+    title: Read URL as Markdown
+    key_required: false
+    inputs: [url, format, render, lang, max_chars, page_markers]
+    x402_endpoint: https://pagesnap.142-93-197-141.sslip.io/x402/v1/read
+    x402_price_usdc: '0.002'
+  - name: crawl_site
+    title: Crawl a site as Markdown
+    key_required: false
+    inputs: [url, limit, max_depth, same_origin, include, exclude, use_sitemap, max_chars]
+    x402_endpoint: https://pagesnap.142-93-197-141.sslip.io/x402/v1/crawl
+    x402_price_usdc: 0.002 per page, maximum 25 pages
+  - name: generate_llms_txt
+    title: Generate llms.txt files
+    key_required: false
+    inputs: [url, limit, include, exclude, max_chars]
+  - name: screenshot_url
+    title: Screenshot a URL
+    key_required: false
+    inputs: [url, width, height, full_page, dark, device, wait, selector, format, actions, lang]
+    x402_endpoint: https://pagesnap.142-93-197-141.sslip.io/x402/v1/screenshot
+    x402_price_usdc: '0.005'
+  - name: pdf_url
+    title: Convert URL to PDF
+    key_required: false
+    inputs: [url, format, landscape, lang, header, footer, page_numbers]
+    x402_endpoint: https://pagesnap.142-93-197-141.sslip.io/x402/v1/pdf
+    x402_price_usdc: '0.005'
+  - name: get_meta
+    title: Get link preview metadata
+    key_required: false
+    inputs: [url, lang]
+    x402_endpoint: https://pagesnap.142-93-197-141.sslip.io/x402/v1/meta
+    x402_price_usdc: '0.002'
+  - name: extract_structured
+    title: Extract structured web data
+    key_required: false
+    inputs: [url, max_chars]
+    x402_endpoint: https://pagesnap.142-93-197-141.sslip.io/x402/v1/extract
+    x402_price_usdc: '0.002'
+  - name: create_monitor
+    title: Create a change monitor
+    key_required: true
+    inputs: [url, mode, interval, selector, threshold_percent, webhook_url, width, height, full_page, dark, device, wait]
+    note: Returns the monitor webhook_secret exactly once.
+  - name: list_monitors
+    title: List change monitors
+    key_required: true
+    inputs: []
+    note: Intentionally omits webhook_secret.
+  - name: usage
+    title: Pagesnap usage and limits
+    key_required: false
+    inputs: []
+  - name: upgrade_plan
+    title: Upgrade the Pagesnap plan
+    key_required: true
+    inputs: [plan]
+prompts:
+  - name: summarize_url
+    arguments: [url, focus]
+  - name: compare_pages
+    arguments: [url_a, url_b]
+  - name: research_site
+  - name: check_page_for_changes
+resources:
+  - uri: pagesnap://docs/quickstart
+    mime_type: text/markdown
+  - uri: pagesnap://docs/api
+    mime_type: text/markdown
+  - uri: pagesnap://llms.txt
+    mime_type: text/plain
+  - uri: pagesnap://usage
+    note: Dynamic; reflects the calling session's plan.
+clients_documented:
+  - Claude Code (marketplace plugin - claude plugin marketplace add CalibratedGhosts/PageSnap)
+  - Claude Desktop (custom connector)
+  - Cursor (one-click deeplink)
+  - VS Code / VS Code Insiders (one-click deeplink)
+  - Codex (stdio + portable skill)
+  - Windsurf
+  - Zed
+  - JetBrains AI Assistant

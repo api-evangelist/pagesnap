@@ -1,0 +1,32 @@
+generated: '2026-09-02'
+method: mixed
+api: Pagesnap API
+skills:
+  - file: skills/pagesnap-pagesnap.md
+    name: pagesnap
+    method: searched
+    source: https://raw.githubusercontent.com/CalibratedGhosts/PageSnap/main/skills/pagesnap/SKILL.md
+    note: >-
+      Provider-published Agent Skill, saved verbatim. Also distributed as a Claude Code
+      marketplace plugin (claude plugin install pagesnap@pagesnap) and a portable Codex skill
+      (npx -y skills add CalibratedGhosts/PageSnap --skill pagesnap). Covers read, screenshot,
+      PDF, metadata and batch, and states the prompt-injection boundary explicitly.
+  - file: skills/pagesnap-crawl-to-rag.md
+    name: pagesnap-crawl-to-rag
+    method: generated
+    source: openapi/pagesnap-openapi.json
+    operations: [crawlSite, getCrawlJob, getCrawlJobResult, generateLlmsTxt]
+    note: >-
+      Covers the 202 job handshake and the bearer-capability result URL, which the provider skill
+      does not.
+  - file: skills/pagesnap-change-monitor.md
+    name: pagesnap-change-monitor
+    method: generated
+    source: openapi/pagesnap-openapi.json
+    operations: [createMonitor, listMonitors, getMonitor, checkMonitor, pauseMonitor, resumeMonitor, deleteMonitor]
+    note: >-
+      Covers the once-only webhook_secret, HMAC verification, the 20-failure disable rule, and the
+      irreversibility of deleteMonitor.
+grounding: >-
+  Every operationId referenced in the generated skills was checked against
+  openapi/pagesnap-openapi.json. No operation, parameter or error code was invented.

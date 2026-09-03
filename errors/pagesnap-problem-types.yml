@@ -1,0 +1,90 @@
+generated: '2026-09-02'
+method: derived
+source: openapi/pagesnap-openapi.json + https://pagesnap.142-93-197-141.sslip.io/docs
+format: custom-json
+rfc9457: false
+envelope: '{"error": {"code": "<ENUM>", "message": "<human string>", "reason": "<optional refinement>"}}'
+note: >-
+  Pagesnap does not use application/problem+json, but it publishes something rarer and arguably
+  more useful to an agent: a CLOSED enum of 58 machine-readable codes declared inside the OpenAPI
+  Error schema, so a client can exhaustively switch on failure without scraping prose. Titles and
+  remediation below come from the provider's own error table at /docs; the code-to-status mapping
+  comes from the spec's shared components.responses.
+error_code_count: 58
+shared_responses: [BadRequest, Unauthorized, Forbidden, Timeout, Conflict, TooLarge, UnsupportedMedia, Unprocessable, RateLimited, NotFound, Internal, UpstreamFailure, Unavailable]
+classes:
+  - status: 400
+    title: Bad input
+    codes: [MISSING_URL, INVALID_URL, INVALID_ACTIONS, MISSING_HTML, MISSING_URLS, BATCH_TOO_LARGE, BAD_REQUEST, INVALID_MODE, INVALID_INTERVAL, INVALID_THRESHOLD, INVALID_SELECTOR, INVALID_PLAN, CHECKOUT_CONTEXT_REQUIRED]
+    remediation: Fix the request; do not retry unchanged.
+  - status: 401
+    title: Authentication
+    codes: [INVALID_KEY, KEY_REQUIRED]
+    remediation: >-
+      Supply Authorization: Bearer ps_live_... or create a key at POST /v1/keys. KEY_REQUIRED is
+      returned by monitor and billing operations that anonymous callers cannot use.
+  - status: 403
+    title: Forbidden target or plan restriction
+    codes: [KEY_DISABLED, BLOCKED_URL, PLAN_INTERVAL]
+    remediation: >-
+      BLOCKED_URL means the target is private, localhost, link-local, cloud-metadata or otherwise
+      refused - only public HTTP(S) destinations are accepted, and every redirect is re-checked.
+      PLAN_INTERVAL means the requested monitor interval is above the plan's tier.
+  - status: 404
+    title: Not found
+    codes: [NOT_FOUND, JOB_NOT_FOUND, MONITOR_NOT_FOUND, ORDER_NOT_FOUND, INVOICE_NOT_FOUND, RESULT_UNAVAILABLE]
+    remediation: >-
+      Job and temporary-result URLs are 24-hour (jobs) or 1-hour (temp files) bearer capabilities;
+      a 404 after that window is expiry, not a wrong id.
+  - status: 408
+    title: Target timeout
+    codes: [TIMEOUT]
+    remediation: Retry with wait_until=domcontentloaded or a longer timeout.
+  - status: 409
+    title: Conflict
+    codes: [MONITOR_RUNNING, MONITOR_PAUSED, JOB_NOT_READY, PAYMENT_REPLAY]
+    remediation: >-
+      Monitor state conflicts resolve by polling; JOB_NOT_READY means keep polling the status_url;
+      PAYMENT_REPLAY means the x402 signed nonce was already settled - sign a new authorization.
+  - status: 413
+    title: Too large
+    codes: [TOO_LARGE, RESULT_TOO_LARGE, SNAPSHOT_TOO_LARGE]
+    remediation: >-
+      Reduce the target, the crawl limit, or max_chars. HTML render bodies are capped at 1.5 MB,
+      crawl job results at 32 MiB, monitor snapshots at 500 KB.
+  - status: 415
+    title: Unsupported media
+    codes: [UNSUPPORTED_MEDIA]
+    remediation: Send application/json for POST bodies.
+  - status: 422
+    title: Unprocessable content
+    codes: [UNSUPPORTED, ACTION_FAILED]
+    remediation: >-
+      ACTION_FAILED means a validated pre-capture action (click, scroll, hide) did not apply to
+      the page. Adjust or drop the action.
+  - status: 429
+    title: Rate limited or quota exhausted
+    codes: [RATE_LIMITED, TARGET_BUSY, ANON_GLOBAL_QUOTA, DAILY_QUOTA, MONTHLY_QUOTA, CONCURRENCY, KEY_LIMIT, KEY_SPIKE_LIMIT, MONITOR_LIMIT, TICKET_LIMIT, CHECKOUT_KEY_LIMIT, CHECKOUT_IP_LIMIT]
+    remediation: >-
+      Honor Retry-After and back off exponentially. TARGET_BUSY protects each destination hostname
+      at 60/minute and 3 in flight and is about the TARGET, not the caller - retry against a
+      different host or wait. Nothing is charged automatically on 429.
+  - status: 500
+    title: Internal
+    codes: [INTERNAL]
+  - status: 502
+    title: Upstream target failure
+    codes: [NAV_FAILED, HTTP_ERROR, BROWSER_ERROR]
+    remediation: >-
+      The target failed or refused. error.reason distinguishes non-interactive bot protection,
+      interactive_challenge (Pagesnap never solves CAPTCHA/Turnstile), and ip_policy_or_geo_block
+      (the site refuses this server region - try later or use another source).
+  - status: 503
+    title: Temporarily unavailable
+    codes: [BUSY, ENGINE_UNAVAILABLE, JOB_QUEUE_FULL, BILLING_UNAVAILABLE, INVOICE_UNAVAILABLE, FACILITATOR_UNAVAILABLE, SETTLEMENT_UNVERIFIED]
+    remediation: >-
+      Retry with exponential backoff. BUSY means the plan-prioritized admission wait expired or
+      sustained CPU load shed new anonymous browser work. FACILITATOR_UNAVAILABLE and
+      SETTLEMENT_UNVERIFIED are x402-specific: Pagesnap independently verifies a mined USDC
+      Transfer receipt on Base before releasing paid output, and withholds output rather than
+      trusting the facilitator.

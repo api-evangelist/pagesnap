@@ -1,0 +1,5 @@
+Contact: mailto:hello@pagesnap.142-93-197-141.sslip.io
+Expires: 2027-08-31T00:00:00Z
+Preferred-Languages: en
+Canonical: https://pagesnap.142-93-197-141.sslip.io/.well-known/security.txt
+Policy: https://pagesnap.142-93-197-141.sslip.io/trust

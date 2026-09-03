@@ -1,0 +1,124 @@
+generated: '2026-09-02'
+method: searched
+source: https://pagesnap.142-93-197-141.sslip.io/pricing
+currency: USD
+billing_model: >-
+  One-off 31-day request pools. No automatic renewal, no reserved capacity, no SLA. Paying early
+  for the same plan stacks another 31 days; switching plans replaces the current plan and starts a
+  new 31-day term. When a paid term ends the key returns to Free.
+payment_methods:
+  - USDC or native ETH/POL on Base (recommended), Arbitrum One, Optimism, Polygon PoS, Ethereum mainnet
+  - x402 v2 exact USDC on Base, per call, no account (separate from plan quota)
+card_payments: false
+card_payments_note: >-
+  Card payments are not live. A support ticket records interest but does not create a card order.
+plan_count: 5
+plans:
+  - name: Anonymous
+    price: 0
+    period: null
+    signup_required: false
+    quota: 30 requests/day per IP
+    rate_limit: 10 requests/minute
+    concurrency: 1
+    batch_max_urls: 3
+    monitors: 0
+    monitor_intervals: []
+    queue_rank: anonymous
+    notes: No key needed; monitors require an API key.
+  - name: Free
+    price: 0
+    period: monthly
+    signup_required: true
+    signup_note: Key created without email at POST /v1/keys or /keys.
+    quota: 3,000 requests/month with a 100/day cap (both apply)
+    rate_limit: 20 requests/minute
+    concurrency: 2
+    batch_max_urls: 10
+    monitors: 2
+    monitor_intervals: ['24h']
+    queue_rank: free
+    trial: >-
+      Every eligible new free key starts with a 7-day Pro trial (real Pro limits and intervals,
+      5-monitor cap, one trial per creator IP hash every 30 days), then returns to Free.
+  - name: Starter
+    price: 3
+    period: 31 days
+    quota: 1,500 requests/term (pooled, no daily cap)
+    rate_limit: 30 requests/minute
+    concurrency: 2
+    batch_max_urls: 15
+    monitors: 10
+    monitor_intervals: ['1h', '6h', '24h']
+    queue_rank: starter
+    checkout: https://pagesnap.142-93-197-141.sslip.io/checkout?plan=starter
+  - name: Pro
+    price: 9
+    period: 31 days
+    quota: 10,000 requests/term (pooled, no daily cap)
+    rate_limit: 60 requests/minute
+    concurrency: 3
+    batch_max_urls: 25
+    monitors: 50
+    monitor_intervals: ['1h', '6h', '24h']
+    queue_rank: pro
+    checkout: https://pagesnap.142-93-197-141.sslip.io/checkout?plan=pro
+  - name: Scale
+    price: 29
+    period: 31 days
+    quota: 50,000 requests/term (pooled, no daily cap)
+    rate_limit: 120 requests/minute
+    concurrency: 5
+    batch_max_urls: 50
+    monitors: 200
+    monitor_intervals: ['1h', '6h', '24h']
+    queue_rank: scale
+    checkout: https://pagesnap.142-93-197-141.sslip.io/checkout?plan=scale
+enterprise: false
+enterprise_note: >-
+  Explicitly none. "There is no published custom plan, reserved capacity, or SLA" - open a
+  support ticket for an assessment above 50,000 requests.
+usage_based:
+  model: x402 per-call USDC on Base (eip155:8453), no account and no plan quota consumed
+  source: https://pagesnap.142-93-197-141.sslip.io/.well-known/x402
+  prices:
+    - route: /x402/v1/read
+      price_usdc: '0.002'
+    - route: /x402/v1/meta
+      price_usdc: '0.002'
+    - route: /x402/v1/extract
+      price_usdc: '0.002'
+    - route: /x402/v1/screenshot
+      price_usdc: '0.005'
+    - route: /x402/v1/pdf
+      price_usdc: '0.005'
+    - route: /x402/v1/render
+      price_usdc: '0.005'
+    - route: /x402/v1/crawl
+      price_usdc: 0.002 per requested page, maximum 25
+free_credit_programs:
+  - name: Open-source program
+    url: https://pagesnap.142-93-197-141.sslip.io/oss
+    grant: Pro free for six months for eligible public OSI-licensed projects
+  - name: Link and earn
+    url: https://pagesnap.142-93-197-141.sslip.io/link-and-earn
+    grant: >-
+      Publish a visible link to Pagesnap on a public page, verify it at POST /v1/link-verify, and
+      the key gets rolling 90-day Pro, rechecked every 14 days. One page and key each, one grant
+      per creator IP hash per 30 days.
+  - name: Referral
+    grant: >-
+      A valid ref gives a new key +100 requests/day for 30 days; the referrer earns 1,000 extra
+      requests for the current month after the referred key makes 10 successful requests across
+      at least 2 target hosts, up to 10 rewards/month.
+metering:
+  unit: request
+  charged: >-
+    Once per read, screenshot, PDF, metadata, extraction, HTML-render output, or monitor check;
+    twice per two-URL diff; once per URL in a batch; once per reserved crawl page. Cache hits
+    count.
+refunds: >-
+  A confirmed plan purchase reported within 48 hours is eligible for review when the paid service
+  materially failed. Not automatic - the AI operator investigates and the human wallet owner
+  approves and signs any transfer; network fees are not reimbursed. Confirmed x402 calls are final
+  except duplicate settlements or service-side settlement errors.

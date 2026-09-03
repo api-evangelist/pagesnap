@@ -1,0 +1,60 @@
+generated: '2026-09-02'
+method: searched
+source: https://pagesnap.142-93-197-141.sslip.io/embed + https://pagesnap.142-93-197-141.sslip.io/tools
+families:
+  - name: Embeddable link previews
+    kind: browser-widget
+    loader: '<script src="https://pagesnap.142-93-197-141.sslip.io/embed/preview.js"></script>'
+    docs: https://pagesnap.142-93-197-141.sslip.io/embed
+    dependencies: none
+    description: >-
+      Dependency-free script that attaches rich previews to external links on hover, keyboard
+      focus, or first touch. Metadata is fetched only when a preview is actually requested.
+    configuration:
+      - attribute: data-selector
+        default: a[href^="http"]
+        purpose: CSS selector for previewable links; the default excludes same-origin destinations.
+      - attribute: data-delay
+        default: '250'
+        purpose: Hover or keyboard-focus delay in milliseconds.
+      - attribute: data-theme
+        default: auto
+        purpose: light, dark, or auto from the visitor's color preference.
+      - attribute: data-mode
+        default: meta
+        purpose: meta for a rich card, screenshot for a small page image.
+      - attribute: data-key
+        default: none
+        purpose: Optional Pagesnap API key sent as bearer authentication.
+      - attribute: init
+        default: automatic
+        purpose: init="manual" skips auto-setup; call window.Pagesnap.preview(options) yourself.
+    guarantees: >-
+      No cookies or persistent storage; in-browser cap of one request start per second and 40 per
+      page load. CSP guidance is published on the same page.
+  - name: Powered by Pagesnap badge
+    kind: static-asset
+    loader: '[![Powered by Pagesnap](https://pagesnap.142-93-197-141.sslip.io/badge.svg)](https://pagesnap.142-93-197-141.sslip.io)'
+    operation_id: poweredByBadge
+    description: Cached static SVG badge for READMEs and project pages; feeds the link-and-earn Pro grant.
+  - name: Generated Open Graph images
+    kind: hosted-surface
+    url: https://pagesnap.142-93-197-141.sslip.io/og/{hash}.png
+    operation_id: ogImage
+    description: Immutable generated Open Graph images, rendered by the service's own engine.
+  - name: Browser tools (hosted, no signup)
+    kind: hosted-surface
+    url: https://pagesnap.142-93-197-141.sslip.io/tools
+    description: >-
+      Nine no-signup browser tools running on the anonymous allowance - screenshot generator, URL
+      to PDF, URL to Markdown, PDF to Markdown, link preview generator, Open Graph / Twitter card
+      checker, iPhone-vs-Android comparison, website change monitor, and visual/text diff. A tenth,
+      the llms.txt generator, is at /tools/llms-txt-generator.
+  - name: API playground
+    kind: hosted-surface
+    url: https://pagesnap.142-93-197-141.sslip.io/playground
+    description: >-
+      Interactive request builder covering read, screenshot, PDF, metadata, extract, diff, crawl
+      and monitors, including browser pre-capture actions and device emulation. A key stored in
+      localStorage.ps_key is sent only in an Authorization header.
+    detail: sandbox/pagesnap-sandbox.yml

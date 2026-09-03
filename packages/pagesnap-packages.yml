@@ -1,0 +1,132 @@
+generated: '2026-09-02'
+method: searched
+source: https://pagesnap.142-93-197-141.sslip.io/sdk + https://github.com/CalibratedGhosts/PageSnap
+summary: >-
+  Pagesnap ships first-party clients but publishes NONE of them to a package registry. The
+  Python/JavaScript/Bash clients are single files downloaded from the provider's own /sdk path,
+  and the CLI + MCP stdio bridge is installed directly from GitHub. Every registry field below is
+  therefore either read from the repository manifest or recorded as null with the reason.
+registry_squat_warning: >-
+  The names `pagesnap` on npm and `pagesnap` on PyPI are BOTH taken by unrelated third parties
+  (npm: ppetkov89, a vanilla-JS full-page scrolling library, 1.0.2 published 2025-04-25; PyPI:
+  maxiee, a Playwright single-file page saver, 0.0.2). Neither is this company. `npm i pagesnap`
+  or `pip install pagesnap` installs somebody else's project. Verified 2026-09-02 against
+  registry.npmjs.org and pypi.org.
+packages:
+  - name: pagesnap
+    language: javascript
+    registry: github
+    official: true
+    url: https://github.com/CalibratedGhosts/PageSnap
+    install: npx -y github:CalibratedGhosts/PageSnap
+    version: 1.2.1
+    published: null
+    version_source: https://raw.githubusercontent.com/CalibratedGhosts/PageSnap/main/package.json
+    kind: cli+mcp-bridge
+    binaries: [pagesnap, pagesnap-mcp]
+    dependencies: ['@modelcontextprotocol/sdk', zod]
+    note: >-
+      published: null because the package has no registry entry to date - there is no npm release
+      record, so no publish date exists. The version is read from the repository's package.json on
+      the default branch; the repo's own last push was 2026-09-03T00:04Z. An unpinned
+      `npx -y github:...` install floats to whatever main holds; the docs recommend appending
+      #<commit-sha> for reproducibility, which is the honest mitigation for having no registry.
+  - name: pagesnap.py
+    language: python
+    registry: cdn
+    official: true
+    url: https://pagesnap.142-93-197-141.sslip.io/sdk/pagesnap.py
+    install: Download the file and place it beside your program; requires `requests`.
+    version: 1.1.0
+    published: null
+    version_source: https://pagesnap.142-93-197-141.sslip.io/sdk
+    kind: single-file-sdk
+    requires: Python 3.10+
+    features: [typed methods, automatic HTTP 429 retries honoring Retry-After, automatic crawl-job polling]
+    note: >-
+      Distribution is an unpinned URL on the provider's own host - there is no registry metadata
+      endpoint and no immutable versioned URL, so a consumer cannot tell which build they fetched
+      beyond the VERSION constant inside the file. version read from the /sdk page and the file
+      itself; published: null because no dated release record exists. HTTP 200, 7,697 bytes on
+      2026-09-02.
+  - name: pagesnap.js
+    language: javascript
+    registry: cdn
+    official: true
+    url: https://pagesnap.142-93-197-141.sslip.io/sdk/pagesnap.js
+    install: Download the file; CommonJS, works from ESM via default-import interop.
+    version: 1.1.0
+    published: null
+    version_source: 'VERSION constant inside the file (fetched 2026-09-02)'
+    kind: single-file-sdk
+    requires: Node 18+
+    features: [built-in fetch, automatic crawl-job polling, snake_case passthrough]
+    note: Unpinned URL, no registry metadata endpoint. HTTP 200, 6,747 bytes on 2026-09-02.
+  - name: pagesnap.sh
+    language: shell
+    registry: cdn
+    official: true
+    url: https://pagesnap.142-93-197-141.sslip.io/sdk/pagesnap.sh
+    install: source ./pagesnap.sh
+    version: 1.1.0
+    published: null
+    version_source: 'VERSION constant inside the file (fetched 2026-09-02)'
+    kind: single-file-sdk
+    requires: bash + curl
+    note: >-
+      Sourceable functions for every endpoint with PAGESNAP_API_KEY and PAGESNAP_BASE_URL
+      environment variables. Unpinned URL. HTTP 200, 4,228 bytes on 2026-09-02.
+  - name: preview.js (embed widget)
+    language: javascript
+    registry: cdn
+    official: true
+    url: https://pagesnap.142-93-197-141.sslip.io/embed/preview.js
+    install: '<script src="https://pagesnap.142-93-197-141.sslip.io/embed/preview.js"></script>'
+    version: null
+    published: null
+    kind: browser-widget
+    note: >-
+      version: null - the script tag is unpinned, carries no version constant this pass could
+      read, and floats to whatever the host serves. A consumer cannot tell what they are getting
+      either. HTTP 200, 7,457 bytes on 2026-09-02. See components/pagesnap-components.yml.
+  - name: pagesnap (Claude Code plugin)
+    language: n/a
+    registry: github
+    official: true
+    url: https://github.com/CalibratedGhosts/PageSnap
+    install: |-
+      claude plugin marketplace add CalibratedGhosts/PageSnap
+      claude plugin install pagesnap@pagesnap
+    version: 1.0.0
+    published: null
+    version_source: https://raw.githubusercontent.com/CalibratedGhosts/PageSnap/main/.claude-plugin/marketplace.json
+    kind: agent-plugin
+    note: Bundles the Pagesnap Agent Skill and connects to the remote MCP HTTP endpoint.
+  - name: pagesnap (Codex skill)
+    language: n/a
+    registry: github
+    official: true
+    url: https://github.com/CalibratedGhosts/PageSnap
+    install: npx -y skills add CalibratedGhosts/PageSnap --skill pagesnap -g -a codex -y
+    version: null
+    published: null
+    kind: agent-skill
+    note: >-
+      version: null - the SKILL.md frontmatter declares no version. Saved verbatim at
+      skills/pagesnap-pagesnap.md.
+registries_checked:
+  - registry: npm
+    query: pagesnap
+    result: 200 but a DIFFERENT project (ppetkov89/pagesnap, 1.0.2, 2025-04-25)
+  - registry: npm
+    query: '@pagesnap/mcp'
+    result: 404
+  - registry: npm
+    query: pagesnap-mcp
+    result: 404
+  - registry: pypi
+    query: pagesnap
+    result: 200 but a DIFFERENT project (maxiee/pagesnap, 0.0.2)
+  - registry: modelcontextprotocol.io
+    query: pagesnap
+    result: 200 - official MCP Registry entry io.sslip.142-93-197-141.pagesnap/pagesnap, active

@@ -1,0 +1,43 @@
+# Pagesnap autonomous-agent onboarding: https://pagesnap.142-93-197-141.sslip.io/agents
+
+> One API that turns a publicly reachable HTTP(S) URL into clean Markdown (for LLMs), a screenshot, a PDF, or link-preview metadata. Free tier without signup; remote MCP server for agents.
+
+Base URL: https://pagesnap.142-93-197-141.sslip.io
+Auth: optional. `Authorization: Bearer ps_live_...` (create at https://pagesnap.142-93-197-141.sslip.io/keys or POST /v1/keys). Eligible new keys begin with a 7-day Pro trial (5-monitor cap; one trial per creator IP hash per 30 days), then Free: 100/day and 3,000/month (both apply). Anonymous: 30 requests/day per IP. Starter: 1,500/31 days for $3. Pro: 10,000/31 days for $9. Scale: 50,000/31 days for $29. A verified public link earns rolling 90-day Pro: https://pagesnap.142-93-197-141.sslip.io/link-and-earn.
+
+## Endpoints
+- GET /r/<url> — shortcut: prefix a public HTTP(S) URL to get Markdown (e.g. https://pagesnap.142-93-197-141.sslip.io/r/https://example.com). GET /s/<url> — screenshot shortcut.
+- GET /v1/read?url=...&format=markdown|text|html|json[&render=true] — main content as Markdown (default). JSON adds title, byline, links, images, meta.
+- Keyless x402 v2 exact USDC on Base: GET /x402/v1/read ($0.002), /meta ($0.002), /extract ($0.002), /screenshot ($0.005), /pdf ($0.005); POST /x402/v1/render ($0.005); POST /x402/v1/crawl ($0.002 × requested limit, maximum 25). Inputs and outputs match /v1/*.
+- GET /v1/screenshot?url=...[&width=1280&height=800&full_page=true&format=png|jpeg|webp&device=iPhone%2014&dark=true&selector=.main&wait=1000] — image bytes.
+- GET /v1/pdf?url=...[&format=A4&landscape=true] — PDF bytes.
+- GET /v1/meta?url=... — title, description, og:image, favicon, canonical, author, publishedTime.
+- GET /v1/diff?url_a=...&url_b=...&mode=visual|text — two-request page comparison with a visual diff image/changed regions or normalized added/removed lines. Authenticated POST/GET/DELETE /v1/monitors manages persisted text, visual, or metadata change monitors (Free 2 at 24h; Starter 10, Pro 50, Scale 200 at 1h/6h/24h).
+- GET /v1/extract?url=... — JSON-LD, microdata, RDFa-lite, social metadata, and normalized schema entities.
+- POST /v1/render {html, type: png|jpeg|webp|pdf, width, height, ...} — render your own HTML.
+- POST /v1/batch {urls: [...], format} — read many URLs (max 10 on free).
+- POST /v1/crawl {url, limit, max_depth, same_origin, include, exclude, use_sitemap, format} — robots-aware site crawl; effective limits over 25 return 202 {job_id,status_url}. Poll GET /v1/jobs/:id, then download /result as JSON or ?format=ndjson; job URLs are 24-hour bearer capabilities.
+- POST /v1/llms-txt {url, limit, include, exclude, format: json|txt} — robots-aware documentation crawl that generates llms.txt and llms-full.txt; larger limits reuse crawl jobs. Browser tool: https://pagesnap.142-93-197-141.sslip.io/tools/llms-txt-generator.
+- POST /v1/keys {label?, email?, ref?} — create a key with an eligible 7-day Pro trial, optionally from a referral; referral +100/day starts after trial. GET /v1/me — plan, trial, usage, link grant, orders, receipt links, referral URL and rewards.
+- POST /v1/link-verify {key,page_url} — fetch a public page without a browser, verify its visible link to Pagesnap (nofollow accepted), and grant Pro for 90 days; one page/key and one grant/IP hash per 30 days.
+- POST /v1/checkout {plan: starter|pro|scale, key?} — create a 31-day crypto upgrade invoice; the key may use Bearer auth. GET /v1/checkout/:order_id — payment/activation status.
+- GET /pay/:order_id/receipt.html or .pdf — durable receipts after a confirmed payment. GET /v1/status — 60-second cached uptime, latency, queues, and latest incident JSON.
+- A2A 1.0 JSON-RPC: POST https://pagesnap.142-93-197-141.sslip.io/a2a; discovery card https://pagesnap.142-93-197-141.sslip.io/.well-known/agent-card.json. Skills: read_url, screenshot_url, pdf_url, get_meta, crawl_site, extract_structured.
+- MCP (Streamable HTTP): https://pagesnap.142-93-197-141.sslip.io/mcp — tools read_url, crawl_site, generate_llms_txt, screenshot_url, pdf_url, get_meta, extract_structured, create_monitor, list_monitors, usage, upgrade_plan; create_monitor, list_monitors, and upgrade_plan require a key. Content tools advertise optional x402 HTTP equivalents in namespaced _meta; MCP calls remain quota-based.
+
+## Docs
+- https://pagesnap.142-93-197-141.sslip.io/agents — accountless onboarding for anonymous use, keys, MCP/A2A, x402, upgrades, receipts, and support
+- https://pagesnap.142-93-197-141.sslip.io/docs — full reference
+- https://pagesnap.142-93-197-141.sslip.io/docs/stability — versioning, retention, rate-limit, and deprecation promises
+- https://pagesnap.142-93-197-141.sslip.io/openapi.json — OpenAPI 3.1
+- https://pagesnap.142-93-197-141.sslip.io/openapi.yaml — the same OpenAPI 3.1 contract as YAML
+- https://pagesnap.142-93-197-141.sslip.io/.well-known/x402 — accountless x402 route fan-out; runtime challenges carry Bazaar discovery metadata
+- https://pagesnap.142-93-197-141.sslip.io/.well-known/agent-card.json — A2A 1.0 card with optional x402 route and pricing extension
+- https://pagesnap.142-93-197-141.sslip.io/llms-full.txt — compiled full docs, guides, integration recipes, pricing, and research summaries
+- https://pagesnap.142-93-197-141.sslip.io/badge.svg — cached static “Powered by Pagesnap” badge
+- https://pagesnap.142-93-197-141.sslip.io/pricing — plans
+- https://pagesnap.142-93-197-141.sslip.io/link-and-earn — earn 90 days of Pro with a verified public link
+- https://pagesnap.142-93-197-141.sslip.io/stats — live public usage stats
+- https://pagesnap.142-93-197-141.sslip.io/about — who built the service and what remains human-controlled
+- https://pagesnap.142-93-197-141.sslip.io/trust — security, retention, reliability, payments, contacts, and independent public evidence
+- https://pagesnap.142-93-197-141.sslip.io/support — private on-site support tickets

@@ -1,0 +1,70 @@
+generated: '2026-09-02'
+method: searched
+source: https://pagesnap.142-93-197-141.sslip.io/sdk + https://pagesnap.142-93-197-141.sslip.io/docs
+name: pagesnap
+version: 1.2.1
+version_source: https://raw.githubusercontent.com/CalibratedGhosts/PageSnap/main/package.json
+runtime: Node 18.18+
+dependencies: none
+note: >-
+  Dependency-free: built-in fetch and Node standard-library modules only. The package is NOT
+  published to npm - it is installed straight from GitHub, which means `npx -y pagesnap` resolves
+  to an UNRELATED library by a different author. See packages/pagesnap-packages.yml.
+install:
+  - method: npx-from-github
+    command: npx -y github:CalibratedGhosts/PageSnap
+    note: Append #<commit-sha> to the GitHub spec for a reproducible pinned install.
+binaries:
+  - pagesnap
+  - pagesnap-mcp
+auth:
+  env: PAGESNAP_API_KEY
+  config_file: ~/.config/pagesnap/config.json  ({"apiKey":"ps_live_..."})
+  base_url_override: PAGESNAP_BASE_URL
+  optional: true
+commands:
+  - name: read
+    surface: content
+    maps_to: readUrl
+  - name: shot
+    surface: content
+    maps_to: screenshotUrl
+    flags: [-o <file>, --full-page]
+  - name: pdf
+    surface: content
+    maps_to: pdfUrl
+  - name: meta
+    surface: content
+    maps_to: getMeta
+  - name: extract
+    surface: content
+    maps_to: extractStructured
+  - name: crawl
+    surface: crawl
+    maps_to: crawlSite
+    flags: [--limit]
+    note: Polls asynchronous 202 jobs automatically.
+  - name: llms-txt
+    surface: crawl
+    maps_to: generateLlmsTxt
+    flags: [--limit]
+  - name: diff
+    surface: diff
+    maps_to: diffUrls
+  - name: keys create
+    surface: account
+    maps_to: createKey
+  - name: me
+    surface: account
+    maps_to: getAccount
+  - name: mcp
+    surface: protocol
+    note: Starts the MCP stdio bridge (the local-stdio half of mcp/pagesnap-mcp.yml).
+output: >-
+  Binary output streams to stdout unless -o is supplied. Asynchronous crawl and generator jobs are
+  polled by the CLI.
+examples:
+  - npx -y github:CalibratedGhosts/PageSnap read https://example.com
+  - npx -y github:CalibratedGhosts/PageSnap shot https://example.com -o example.png --full-page
+  - npx -y github:CalibratedGhosts/PageSnap crawl https://example.com --limit 5
+  - npx -y github:CalibratedGhosts/PageSnap mcp

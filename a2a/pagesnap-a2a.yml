@@ -1,0 +1,113 @@
+generated: '2026-09-02'
+method: probed
+source: https://pagesnap.142-93-197-141.sslip.io/.well-known/agent-card.json
+card_file: a2a/pagesnap-agent-card.json
+discovery:
+  path: /.well-known/agent-card.json
+  canonical: true
+  host: pagesnap.142-93-197-141.sslip.io
+x-evidence:
+  fetched: '2026-09-02'
+  url: https://pagesnap.142-93-197-141.sslip.io/.well-known/agent-card.json
+  http_status: 200
+  content_type: application/json
+  legacy_path_probe:
+    url: https://pagesnap.142-93-197-141.sslip.io/.well-known/agent.json
+    http_status: 404
+agent:
+  name: Pagesnap Web Reading Agent
+  version: 1.0.0
+  provider: Pagesnap
+  documentation_url: https://pagesnap.142-93-197-141.sslip.io/docs
+  endpoint: https://pagesnap.142-93-197-141.sslip.io/a2a
+  transport: JSONRPC
+  protocol_version: '1.0'
+grade: near-conformant
+grade_basis: >-
+  capabilities is a JSON object, skills is an array of 6 well-formed skill objects with
+  id/name/description/tags/examples/inputModes/outputModes, and defaultInputModes and
+  defaultOutputModes are both present. The only miss against the pipeline's hard checks is a
+  top-level protocolVersion key.
+deviations:
+  - id: no-top-level-protocolVersion
+    severity: informational
+    detail: >-
+      The card declares protocolVersion "1.0" inside supportedInterfaces[0] rather than at the top
+      level. This is the A2A 1.0.0 supportedInterfaces shape, which folded the pre-1.0
+      url/preferredTransport/protocolVersion triple into per-interface entries. Recorded as a
+      deviation because a validator reading the pre-1.0 top-level key will not find it.
+  - id: no-preferredTransport
+    severity: informational
+    detail: >-
+      preferredTransport is absent, superseded by supportedInterfaces[0].protocolBinding =
+      JSONRPC. Optional under 1.0.
+  - id: streaming-and-push-disabled
+    severity: informational
+    detail: >-
+      capabilities.streaming=false, capabilities.pushNotifications=false,
+      capabilities.extendedAgentCard=false. Declared honestly rather than aspirationally.
+signed: true
+signature:
+  alg: RS256
+  kid: xM0hRyUxREl0sD-cx9iAVC6o
+  jku: https://pagesnap.142-93-197-141.sslip.io/.well-known/jwks.json
+  jwks_file: well-known/pagesnap-jwks.json
+  note: >-
+    Detached JWS in signatures[]. The jku resolves to a served JWKS (HTTP 200) carrying the
+    matching RSA key. Signature bytes were not cryptographically verified by this pass.
+security:
+  required: false
+  schemes:
+    bearer:
+      type: httpAuthSecurityScheme
+      scheme: Bearer
+      note: Optional Pagesnap API key; anonymous access is available at lower quota.
+  note: 'security[] is an empty array, i.e. no scheme is mandatory.'
+extensions:
+  - uri: https://docs.x402.org/extensions/bazaar
+    required: false
+    description: >-
+      Optional keyless x402 v2 exact-payment HTTP equivalents for the content skills. The A2A
+      surface itself stays quota-based.
+    params:
+      network: 'eip155:8453'
+      asset: USDC
+      scheme: exact
+      route_count: 7
+skills:
+  - id: read_url
+    name: Read URL
+    x402_equivalent: https://pagesnap.142-93-197-141.sslip.io/x402/v1/read
+    x402_price_usdc: '0.002'
+  - id: screenshot_url
+    name: Screenshot URL
+    x402_equivalent: https://pagesnap.142-93-197-141.sslip.io/x402/v1/screenshot
+    x402_price_usdc: '0.005'
+  - id: pdf_url
+    name: PDF URL
+    x402_equivalent: https://pagesnap.142-93-197-141.sslip.io/x402/v1/pdf
+    x402_price_usdc: '0.005'
+  - id: get_meta
+    name: Get metadata
+    x402_equivalent: https://pagesnap.142-93-197-141.sslip.io/x402/v1/meta
+    x402_price_usdc: '0.002'
+  - id: crawl_site
+    name: Crawl site
+    x402_equivalent: https://pagesnap.142-93-197-141.sslip.io/x402/v1/crawl
+    x402_price_usdc: 0.002 per page, maximum 25 pages
+  - id: extract_structured
+    name: Extract structured data
+    x402_equivalent: https://pagesnap.142-93-197-141.sslip.io/x402/v1/extract
+    x402_price_usdc: '0.002'
+jsonrpc_methods:
+  - SendMessage
+  - GetTask
+  - ListTasks
+  - CancelTask
+jsonrpc_method_aliases:
+  - message/send
+  - tasks/get
+  - tasks/cancel
+task_retention: >-
+  Completed in-memory tasks expire after 10 minutes; each actor retains at most 10 and the process
+  at most 50 (source /docs).

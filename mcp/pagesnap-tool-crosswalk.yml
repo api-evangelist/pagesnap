@@ -1,0 +1,130 @@
+generated: '2026-09-02'
+method: derived
+source: mcp/pagesnap-mcp-tools.json + a2a/pagesnap-agent-card.json + openapi/pagesnap-openapi.json
+note: >-
+  Both the MCP tool list and the A2A skill list were fetched live and unauthenticated, and the
+  OpenAPI 3.1 document is the provider's own generated contract, so every binding below is a real
+  name-to-operationId match rather than a guess. Confidence is high wherever the tool's input
+  properties are a subset of the REST operation's parameters.
+surfaces:
+  openapi:
+    path: openapi/pagesnap-openapi.json
+    url: https://pagesnap.142-93-197-141.sslip.io/openapi.json
+    operations: 66
+    gated: false
+  mcp:
+    url: https://pagesnap.142-93-197-141.sslip.io/mcp
+    tools: 11
+    gated: false
+    note: Anonymous tools/list returned full inputSchema for all 11 tools.
+  a2a:
+    url: https://pagesnap.142-93-197-141.sslip.io/a2a
+    skills: 6
+    gated: false
+  graphql: null
+crosswalk:
+  - tool: read_url
+    a2a_skill: read_url
+    category: content
+    rest: [readUrl, readUrlPost, readShortcut, readUrlX402]
+    binding: direct
+    confidence: high
+    note: Tool inputs url/format/render/lang/max_chars map onto /v1/read query parameters.
+  - tool: screenshot_url
+    a2a_skill: screenshot_url
+    category: content
+    rest: [screenshotUrl, screenshotUrlPost, screenshotShortcut, screenshotUrlX402]
+    binding: direct
+    confidence: high
+  - tool: pdf_url
+    a2a_skill: pdf_url
+    category: content
+    rest: [pdfUrl, pdfUrlPost, pdfUrlX402]
+    binding: direct
+    confidence: high
+  - tool: get_meta
+    a2a_skill: get_meta
+    category: content
+    rest: [getMeta, getMetaX402]
+    binding: direct
+    confidence: high
+  - tool: extract_structured
+    a2a_skill: extract_structured
+    category: content
+    rest: [extractStructured, extractStructuredX402]
+    binding: direct
+    confidence: high
+  - tool: crawl_site
+    a2a_skill: crawl_site
+    category: crawl
+    rest: [crawlSite, crawlSiteX402, getCrawlJob, getCrawlJobResult]
+    binding: composite
+    confidence: high
+    note: >-
+      The tool hides the 202 job handshake. Effective limits over 25 return a job_id at REST;
+      the MCP tool polls and returns the finished Markdown.
+  - tool: generate_llms_txt
+    category: crawl
+    rest: [generateLlmsTxt, getCrawlJob, getCrawlJobResult]
+    binding: composite
+    confidence: high
+  - tool: create_monitor
+    category: monitors
+    rest: [createMonitor]
+    binding: direct
+    confidence: high
+    note: Key required. Returns webhook_secret once, as the REST 201 does.
+  - tool: list_monitors
+    category: monitors
+    rest: [listMonitors]
+    binding: direct
+    confidence: high
+  - tool: usage
+    category: account
+    rest: [getAccount, getUsage]
+    binding: direct
+    confidence: high
+  - tool: upgrade_plan
+    category: billing
+    rest: [createCheckout]
+    binding: direct
+    confidence: medium
+    note: >-
+      Maps to POST /v1/checkout. The tool returns a pay URL; polling getCheckout is left to the
+      caller, so this is not a full composite of the checkout flow.
+mcp_only: []
+a2a_only: []
+rest_only:
+  - operations: [batchRead]
+    reason: Batch read has no MCP tool; agents loop read_url instead.
+  - operations: [renderHtml, renderHtmlX402]
+    reason: Supplying raw HTML is a REST/x402-only surface.
+  - operations: [diffUrls]
+    reason: >-
+      Two-URL diff is REST-only as a tool, though the MCP prompt compare_pages composes read_url
+      twice to cover the same job.
+  - operations: [getMonitor, deleteMonitor, checkMonitor, pauseMonitor, resumeMonitor]
+    reason: Monitor lifecycle beyond create/list is REST-only; MCP exposes no destructive monitor tool.
+  - operations: [createKey, verifyLinkGrant]
+    reason: Key issuance and the link-grant program are account operations with no tool.
+  - operations: [getCheckout, getReceiptHtml, getReceiptPdf, getPayPageStatus]
+    reason: Payment polling and receipts are REST-only.
+  - operations: [createSupportTicket, getSupportTicket, addSupportTicketMessage]
+    reason: Support ticketing is REST-only.
+  - operations: [getPublicStats, getPublicStatus, healthcheck]
+    reason: Status and stats are REST-only; MCP callers read pagesnap://usage instead.
+  - operations: [agentCard, agentJwks, apiCatalog, securityTxt, x402Manifest, ardManifest, aiCatalog, llmsTxt, llmsFullTxt, openapiJson, openapiYaml, humansTxt, poweredByBadge, ogImage, getTemporaryResult]
+    reason: Discovery, documentation and static assets; not tool-shaped.
+  - operations: [mcpGet, mcpPost, mcpDelete, a2a]
+    reason: The protocol transports themselves, described inside their own OpenAPI.
+coverage:
+  mcp_tools: 11
+  a2a_skills: 6
+  rest_operations: 66
+  tools_bound_to_rest: 11
+  tools_without_rest: 0
+  rest_without_tool: 55
+  note: >-
+    MCP is a deliberate subset, not a projection gap: it covers the six content skills plus crawl
+    automation, monitors and account/billing, and omits the discovery, support, receipt and
+    status surfaces that an agent reads once rather than calls repeatedly.

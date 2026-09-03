@@ -1,0 +1,109 @@
+generated: '2026-09-02'
+method: probed
+source: https://pagesnap.142-93-197-141.sslip.io/docs#auth
+probe:
+  url: https://pagesnap.142-93-197-141.sslip.io/v1/meta?url=https://example.com
+  http_status: 200
+  observed: '2026-09-02'
+  observed_headers:
+    x-plan: anon
+    x-ratelimit-limit: '30'
+    x-ratelimit-remaining: '29'
+    x-ratelimit-scope: day
+    x-render-ms: '7'
+  note: >-
+    Headers below are not merely documented - they were read off a live unauthenticated response.
+    X-RateLimit-Scope names WHICH window the counter belongs to, which is what lets an agent tell
+    a daily cap from a monthly one without a second call.
+response_headers:
+  - name: X-Plan
+    meaning: The plan the request was metered against (anon, free, starter, pro, scale).
+  - name: X-RateLimit-Limit
+    meaning: Ceiling for the scope named by X-RateLimit-Scope.
+  - name: X-RateLimit-Remaining
+    meaning: Requests left in that window.
+  - name: X-RateLimit-Scope
+    meaning: Which window the limit/remaining pair describes (e.g. day).
+  - name: Retry-After
+    meaning: Set on 429 and on 503 BUSY when a useful wait can be computed.
+  - name: ETag
+    meaning: Returned on cacheable content responses; 304 is supported.
+exhaustion:
+  status_codes:
+    - code: 429
+      codes: [RATE_LIMITED, TARGET_BUSY, ANON_GLOBAL_QUOTA, DAILY_QUOTA, MONTHLY_QUOTA, CONCURRENCY, KEY_LIMIT, KEY_SPIKE_LIMIT]
+      meaning: Caller limit, per-target protection, or plan quota exhausted.
+    - code: 503
+      codes: [BUSY, ENGINE_UNAVAILABLE, JOB_QUEUE_FULL]
+      meaning: >-
+        Plan-prioritized admission wait expired, or sustained CPU load shed new anonymous browser
+        work. Distinct from 429 on purpose - it is capacity protection, not a caller limit.
+  guidance: Respect Retry-After and back off exponentially. Nothing is charged automatically on 429.
+limit_count: 11
+limits:
+  - scope: per-ip
+    plan: Anonymous
+    window: day
+    limit: 30
+  - scope: per-ip
+    plan: Anonymous
+    window: minute
+    limit: 10
+  - scope: per-ip
+    plan: Anonymous
+    window: concurrent
+    limit: 1
+  - scope: per-key
+    plan: Free
+    window: month
+    limit: 3000
+    note: A 100/day cap applies simultaneously; both must be satisfied.
+  - scope: per-key
+    plan: Free
+    window: day
+    limit: 100
+  - scope: per-key
+    plan: Free
+    window: minute
+    limit: 20
+    burst: 2 concurrent in-flight
+  - scope: per-key
+    plan: Starter
+    window: 31-day term
+    limit: 1500
+    note: Pooled, no daily cap. 30 requests/minute, 2 concurrent.
+  - scope: per-key
+    plan: Pro
+    window: 31-day term
+    limit: 10000
+    note: Pooled, no daily cap. 60 requests/minute, 3 concurrent.
+  - scope: per-key
+    plan: Scale
+    window: 31-day term
+    limit: 50000
+    note: Pooled, no daily cap. 120 requests/minute, 5 concurrent.
+  - scope: per-target-host
+    plan: all
+    window: minute
+    limit: 60
+    burst: 3 in flight
+    error_code: TARGET_BUSY
+    note: Protects each destination hostname Pagesnap fetches on the caller's behalf.
+  - scope: per-key-and-per-ip
+    plan: all
+    window: day
+    limit: 10 invoices per key, 20 per IP
+    error_code: CHECKOUT_KEY_LIMIT / CHECKOUT_IP_LIMIT
+    note: Checkout invoice creation. Failed provider attempts count toward the cap.
+other_caps:
+  - Batch size 3/10/15/25/50 URLs by plan.
+  - Crawl effective limits over 25 pages return 202 and reuse the 24-hour job API.
+  - llms-txt generation limit 1-200 pages.
+  - Max 3 new API keys per IP per day.
+  - Monitors 0/2/10/50/200 by plan; intervals 24h on Free, 1h/6h/24h on paid.
+  - Monitor scheduler runs at most 2 checks concurrently with jitter.
+change_policy: >-
+  Free and anonymous limits may change prospectively for capacity or abuse control; the docs and
+  response headers are updated when that happens. A paid plan's limits will not be reduced during
+  its purchased 31-day service period. Limit increases and new overload safeguards are treated as
+  additive changes.

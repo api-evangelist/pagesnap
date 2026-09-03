@@ -1,0 +1,833 @@
+{
+  "tools": [
+    {
+      "name": "read_url",
+      "title": "Read URL as Markdown",
+      "description": "Fetch a public web page and return extracted main content as Markdown (or plain text / JSON with title, author, links, and images). It can handle JavaScript-rendered pages (set render=true to force a headless browser), PDFs, and plain text; extraction can omit content on unusual layouts. Example: read_url({ url: \"https://example.com\", format: \"markdown\" }). Keyless per-call HTTP alternative: https://pagesnap.142-93-197-141.sslip.io/x402/v1/read ($0.002 USDC on Base).",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "description": "The http(s) URL to read"
+          },
+          "format": {
+            "type": "string",
+            "enum": [
+              "markdown",
+              "text",
+              "json",
+              "aria",
+              "links"
+            ],
+            "description": "Output format (default markdown; aria forces browser rendering)"
+          },
+          "render": {
+            "type": "boolean",
+            "description": "Force headless-browser rendering for JavaScript-heavy pages"
+          },
+          "lang": {
+            "type": "string",
+            "maxLength": 35,
+            "description": "BCP-47 language tag, default en-US"
+          },
+          "max_chars": {
+            "type": "integer",
+            "minimum": 500,
+            "maximum": 200000,
+            "description": "Truncate output to this many characters (default 60000)"
+          },
+          "page_markers": {
+            "type": "boolean",
+            "description": "For PDFs, include <!-- page N --> markers"
+          }
+        },
+        "required": [
+          "url"
+        ],
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true
+      },
+      "execution": {
+        "taskSupport": "forbidden"
+      },
+      "_meta": {
+        "org.pagesnap/x402": {
+          "protocolVersion": 2,
+          "scheme": "exact",
+          "network": "eip155:8453",
+          "asset": "USDC",
+          "endpoint": "https://pagesnap.142-93-197-141.sslip.io/x402/v1/read",
+          "price": "0.002",
+          "pricing": "fixed",
+          "note": "This is an optional keyless HTTP equivalent; the MCP tool itself uses the normal anonymous/key quota."
+        }
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "format": {
+            "type": "string",
+            "enum": [
+              "markdown",
+              "text",
+              "json",
+              "aria",
+              "links"
+            ]
+          },
+          "data": {
+            "type": "object",
+            "additionalProperties": {}
+          }
+        },
+        "required": [
+          "format"
+        ],
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "crawl_site",
+      "title": "Crawl a site as Markdown",
+      "description": "Crawl up to 25 robots-aware, same-origin pages and concatenate clean Markdown with a source header for each page. Useful for RAG ingestion and documentation discovery. Example: crawl_site({ url: \"https://example.com/docs\", limit: 5, max_depth: 2 }).",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "description": "Public HTTP(S) URL at which to start crawling"
+          },
+          "limit": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 25,
+            "description": "Maximum pages to return (default 20; anonymous plans may allow fewer)"
+          },
+          "max_depth": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 20,
+            "description": "Maximum link depth from the starting page (default 3)"
+          },
+          "same_origin": {
+            "type": "boolean",
+            "description": "Restrict links to the starting origin (default true)"
+          },
+          "include": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 50,
+            "description": "Optional URL patterns to include"
+          },
+          "exclude": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 50,
+            "description": "Optional URL patterns to exclude"
+          },
+          "use_sitemap": {
+            "type": "boolean",
+            "description": "Use same-origin sitemap URLs when available (default true)"
+          },
+          "max_chars": {
+            "type": "integer",
+            "minimum": 1000,
+            "maximum": 200000,
+            "description": "Truncate the combined Markdown to this many characters (default 60000)"
+          }
+        },
+        "required": [
+          "url"
+        ],
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true
+      },
+      "execution": {
+        "taskSupport": "forbidden"
+      },
+      "_meta": {
+        "org.pagesnap/x402": {
+          "protocolVersion": 2,
+          "scheme": "exact",
+          "network": "eip155:8453",
+          "asset": "USDC",
+          "endpoint": "https://pagesnap.142-93-197-141.sslip.io/x402/v1/crawl",
+          "price": "0.002/page (maximum 25 pages)",
+          "pricing": "per-page",
+          "note": "This is an optional keyless HTTP equivalent; the MCP tool itself uses the normal anonymous/key quota."
+        }
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "pages": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": {}
+            }
+          },
+          "stats": {
+            "$ref": "#/properties/pages/items"
+          },
+          "robots": {
+            "$ref": "#/properties/pages/items"
+          }
+        },
+        "required": [
+          "pages",
+          "stats",
+          "robots"
+        ],
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "generate_llms_txt",
+      "title": "Generate llms.txt files",
+      "description": "Crawl a public documentation site with robots.txt and sitemap rules, then generate both the concise llms.txt navigation file and a concatenated llms-full.txt Markdown corpus. Example: generate_llms_txt({ url: \"https://example.com/docs\", limit: 10 }).",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "description": "Public documentation-site HTTP(S) URL"
+          },
+          "limit": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 25,
+            "description": "Maximum documentation pages to crawl (default 20)"
+          },
+          "include": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 50,
+            "description": "Optional URL patterns to include"
+          },
+          "exclude": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 50,
+            "description": "Optional URL patterns to exclude"
+          },
+          "max_chars": {
+            "type": "integer",
+            "minimum": 1000,
+            "maximum": 200000,
+            "description": "Truncate the combined generated files to this many characters (default 100000)"
+          }
+        },
+        "required": [
+          "url"
+        ],
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true
+      },
+      "execution": {
+        "taskSupport": "forbidden"
+      }
+    },
+    {
+      "name": "screenshot_url",
+      "title": "Screenshot a URL",
+      "description": "Render a web page in a headless browser and return a screenshot image (plus a temporary URL to the file, valid 1 hour). Use it to visually verify pages, capture charts, or show a human what a page looks like. Example: screenshot_url({ url: \"https://example.com\", width: 1280, height: 800, format: \"png\" }).",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "description": "Public HTTP(S) URL to capture"
+          },
+          "width": {
+            "type": "integer",
+            "minimum": 200,
+            "maximum": 3840,
+            "description": "Viewport width in CSS pixels (default 1280)"
+          },
+          "height": {
+            "type": "integer",
+            "minimum": 200,
+            "maximum": 10000,
+            "description": "Viewport height in CSS pixels (default 800)"
+          },
+          "full_page": {
+            "type": "boolean",
+            "description": "Capture the full scrollable page instead of the viewport"
+          },
+          "dark": {
+            "type": "boolean",
+            "description": "Emulate a dark color scheme"
+          },
+          "device": {
+            "type": "string",
+            "description": "Device preset, e.g. \"iPhone 14\", \"Pixel 7\", or \"iPad Pro 11\""
+          },
+          "wait": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 10000,
+            "description": "Extra milliseconds to wait after load"
+          },
+          "selector": {
+            "type": "string",
+            "description": "CSS selector to clip the screenshot to"
+          },
+          "format": {
+            "type": "string",
+            "enum": [
+              "jpeg",
+              "png",
+              "webp"
+            ],
+            "description": "Image format; default jpeg is smallest for LLM context"
+          },
+          "actions": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "enum": [
+                    "click",
+                    "hover",
+                    "fill",
+                    "select",
+                    "press",
+                    "scroll",
+                    "wait",
+                    "wait_for",
+                    "hide",
+                    "remove",
+                    "set_viewport"
+                  ],
+                  "description": "Browser action to perform before capture"
+                },
+                "selector": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 1000,
+                  "description": "CSS selector targeted by the action"
+                },
+                "value": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      },
+                      "maxItems": 100
+                    }
+                  ],
+                  "description": "Text or option value for fill/select actions"
+                },
+                "key": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 100,
+                  "description": "Keyboard key for a press action"
+                },
+                "x": {
+                  "type": "number",
+                  "minimum": -100000,
+                  "maximum": 100000,
+                  "description": "Horizontal scroll delta or coordinate"
+                },
+                "y": {
+                  "type": "number",
+                  "minimum": -100000,
+                  "maximum": 100000,
+                  "description": "Vertical scroll delta or coordinate"
+                },
+                "ms": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 5000,
+                  "description": "Bounded wait duration in milliseconds"
+                },
+                "state": {
+                  "type": "string",
+                  "enum": [
+                    "attached",
+                    "detached",
+                    "visible",
+                    "hidden"
+                  ],
+                  "description": "DOM state awaited by wait_for"
+                },
+                "width": {
+                  "type": "integer",
+                  "minimum": 200,
+                  "maximum": 3840,
+                  "description": "Viewport width for set_viewport"
+                },
+                "height": {
+                  "type": "integer",
+                  "minimum": 200,
+                  "maximum": 10000,
+                  "description": "Viewport height for set_viewport"
+                }
+              },
+              "required": [
+                "type"
+              ],
+              "additionalProperties": false
+            },
+            "maxItems": 10,
+            "description": "Up to 10 validated pre-capture browser actions"
+          },
+          "lang": {
+            "type": "string",
+            "maxLength": 35,
+            "description": "BCP-47 language tag, default en-US"
+          }
+        },
+        "required": [
+          "url"
+        ],
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true
+      },
+      "execution": {
+        "taskSupport": "forbidden"
+      },
+      "_meta": {
+        "org.pagesnap/x402": {
+          "protocolVersion": 2,
+          "scheme": "exact",
+          "network": "eip155:8453",
+          "asset": "USDC",
+          "endpoint": "https://pagesnap.142-93-197-141.sslip.io/x402/v1/screenshot",
+          "price": "0.005",
+          "pricing": "fixed",
+          "note": "This is an optional keyless HTTP equivalent; the MCP tool itself uses the normal anonymous/key quota."
+        }
+      }
+    },
+    {
+      "name": "pdf_url",
+      "title": "Convert URL to PDF",
+      "description": "Render a web page to a PDF file and return a temporary download link (valid 1 hour). Example: pdf_url({ url: \"https://example.com\", format: \"A4\", page_numbers: true }).",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "description": "Public HTTP(S) URL to convert"
+          },
+          "format": {
+            "type": "string",
+            "enum": [
+              "A4",
+              "A3",
+              "A5",
+              "Letter",
+              "Legal"
+            ],
+            "description": "Paper size (default A4)"
+          },
+          "landscape": {
+            "type": "boolean",
+            "description": "Use landscape rather than portrait orientation"
+          },
+          "lang": {
+            "type": "string",
+            "maxLength": 35,
+            "description": "BCP-47 language tag, default en-US"
+          },
+          "header": {
+            "type": "string",
+            "maxLength": 2048,
+            "description": "Optional HTML header template"
+          },
+          "footer": {
+            "type": "string",
+            "maxLength": 2048,
+            "description": "Optional HTML footer template"
+          },
+          "page_numbers": {
+            "type": "boolean",
+            "description": "Add a Page X of Y footer; cannot be combined with footer"
+          }
+        },
+        "required": [
+          "url"
+        ],
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true
+      },
+      "execution": {
+        "taskSupport": "forbidden"
+      },
+      "_meta": {
+        "org.pagesnap/x402": {
+          "protocolVersion": 2,
+          "scheme": "exact",
+          "network": "eip155:8453",
+          "asset": "USDC",
+          "endpoint": "https://pagesnap.142-93-197-141.sslip.io/x402/v1/pdf",
+          "price": "0.005",
+          "pricing": "fixed",
+          "note": "This is an optional keyless HTTP equivalent; the MCP tool itself uses the normal anonymous/key quota."
+        }
+      }
+    },
+    {
+      "name": "get_meta",
+      "title": "Get link preview metadata",
+      "description": "Return title, description, Open Graph image, favicon, site name, canonical URL, author and published time for a public URL without rendering the full page. Example: get_meta({ url: \"https://example.com/article\" }).",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "description": "Public HTTP(S) URL whose metadata to inspect"
+          },
+          "lang": {
+            "type": "string",
+            "maxLength": 35,
+            "description": "BCP-47 language tag, default en-US"
+          }
+        },
+        "required": [
+          "url"
+        ],
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true
+      },
+      "execution": {
+        "taskSupport": "forbidden"
+      },
+      "_meta": {
+        "org.pagesnap/x402": {
+          "protocolVersion": 2,
+          "scheme": "exact",
+          "network": "eip155:8453",
+          "asset": "USDC",
+          "endpoint": "https://pagesnap.142-93-197-141.sslip.io/x402/v1/meta",
+          "price": "0.002",
+          "pricing": "fixed",
+          "note": "This is an optional keyless HTTP equivalent; the MCP tool itself uses the normal anonymous/key quota."
+        }
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "metadata": {
+            "type": "object",
+            "additionalProperties": {}
+          }
+        },
+        "required": [
+          "metadata"
+        ],
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "extract_structured",
+      "title": "Extract structured web data",
+      "description": "Deterministically extract JSON-LD, microdata, RDFa-lite, Open Graph, Twitter cards, and normalized schema entities from a URL. Uses a browser only when bot protection blocks the fetch path. Example: extract_structured({ url: \"https://example.com/product\", max_chars: 30000 }).",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "description": "Public HTTP(S) URL from which to extract structured data"
+          },
+          "max_chars": {
+            "type": "integer",
+            "minimum": 1000,
+            "maximum": 200000,
+            "description": "Truncate the JSON result to this many characters (default 60000)"
+          }
+        },
+        "required": [
+          "url"
+        ],
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true
+      },
+      "execution": {
+        "taskSupport": "forbidden"
+      },
+      "_meta": {
+        "org.pagesnap/x402": {
+          "protocolVersion": 2,
+          "scheme": "exact",
+          "network": "eip155:8453",
+          "asset": "USDC",
+          "endpoint": "https://pagesnap.142-93-197-141.sslip.io/x402/v1/extract",
+          "price": "0.002",
+          "pricing": "fixed",
+          "note": "This is an optional keyless HTTP equivalent; the MCP tool itself uses the normal anonymous/key quota."
+        }
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "object",
+            "additionalProperties": {}
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "create_monitor",
+      "title": "Create a change monitor",
+      "description": "Create a persisted text, visual, or metadata monitor. A Pagesnap API key is required. The webhook signing secret is returned only by this call. Example: create_monitor({ url: \"https://example.com\", mode: \"text\", interval: \"24h\" }).",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "description": "The public http(s) URL to monitor"
+          },
+          "mode": {
+            "type": "string",
+            "enum": [
+              "text",
+              "visual",
+              "meta"
+            ],
+            "description": "Comparison mode (default text)"
+          },
+          "interval": {
+            "type": "string",
+            "enum": [
+              "1h",
+              "6h",
+              "24h"
+            ],
+            "description": "Check frequency (default 24h)"
+          },
+          "selector": {
+            "type": "string",
+            "maxLength": 1000,
+            "description": "Optional CSS selector to monitor instead of the whole page"
+          },
+          "threshold_percent": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 100,
+            "description": "Minimum visual-change percentage that triggers an event"
+          },
+          "webhook_url": {
+            "type": "string",
+            "description": "Optional HTTPS endpoint to notify when content changes"
+          },
+          "width": {
+            "type": "integer",
+            "minimum": 200,
+            "maximum": 3840,
+            "description": "Visual-monitor viewport width in pixels"
+          },
+          "height": {
+            "type": "integer",
+            "minimum": 200,
+            "maximum": 10000,
+            "description": "Visual-monitor viewport height in pixels"
+          },
+          "full_page": {
+            "type": "boolean",
+            "description": "Capture the entire page for visual monitoring"
+          },
+          "dark": {
+            "type": "boolean",
+            "description": "Emulate a dark color scheme for visual monitoring"
+          },
+          "device": {
+            "type": "string",
+            "description": "Optional browser device preset for visual monitoring"
+          },
+          "wait": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 10000,
+            "description": "Extra milliseconds to wait before each visual capture"
+          }
+        },
+        "required": [
+          "url"
+        ],
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "execution": {
+        "taskSupport": "forbidden"
+      }
+    },
+    {
+      "name": "list_monitors",
+      "title": "List change monitors",
+      "description": "List the change monitors owned by the authenticated Pagesnap API key. Example: list_monitors({}).",
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "type": "object",
+        "properties": {}
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true
+      },
+      "execution": {
+        "taskSupport": "forbidden"
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "monitors": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": {}
+            }
+          }
+        },
+        "required": [
+          "monitors"
+        ],
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "usage",
+      "title": "Pagesnap usage and limits",
+      "description": "Show the current plan, trial status, remaining quota, and paid or link-based ways to keep Pro. Example: usage({}).",
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "type": "object",
+        "properties": {}
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true
+      },
+      "execution": {
+        "taskSupport": "forbidden"
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "usage": {
+            "type": "object",
+            "additionalProperties": {}
+          }
+        },
+        "required": [
+          "usage"
+        ],
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "upgrade_plan",
+      "title": "Upgrade the Pagesnap plan",
+      "description": "Create a crypto payment invoice for this API key and return wallet-ready payment options. Calling this tool creates a new order; pay exactly one option. Example: upgrade_plan({ plan: \"pro\" }).",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "plan": {
+            "type": "string",
+            "enum": [
+              "starter",
+              "pro",
+              "scale"
+            ],
+            "description": "The paid plan to activate for 31 days"
+          }
+        },
+        "required": [
+          "plan"
+        ],
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false
+      },
+      "execution": {
+        "taskSupport": "forbidden"
+      }
+    }
+  ]
+}

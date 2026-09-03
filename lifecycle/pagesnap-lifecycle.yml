@@ -1,0 +1,82 @@
+generated: '2026-09-02'
+method: searched
+source: https://pagesnap.142-93-197-141.sslip.io/docs/stability
+published: '2026-09-02'
+versioning:
+  scheme: url-prefix
+  current: /v1
+  contract_version: 1.1.0
+  promise: >-
+    No silent breaking changes in v1. Removing or renaming endpoints, required inputs, response
+    fields, or established meanings requires a new version prefix. Additive changes (new optional
+    request capabilities, response fields, enum values, headers) are allowed and clients must
+    tolerate them.
+  scope: >-
+    Covers both GET and POST forms of read/screenshot/PDF, extraction, render, batch, crawl and
+    job polling, diff, monitor lifecycle routes, keys/usage, checkout status, and support JSON.
+    Binary media types and documented JSON fields are part of the contract. Shortcut, discovery,
+    badge, receipt, status, MCP, A2A and x402 URLs remain supported while also following their own
+    protocol version negotiation.
+deprecation_policy:
+  url: https://pagesnap.142-93-197-141.sslip.io/docs/stability
+  notice_period_days: 90
+  mechanism: RFC 8594
+  headers: [Deprecation, Sunset, Link]
+  detail: >-
+    "If a v1 feature must be retired, it stays available for at least 90 days after announcement.
+    Affected responses carry Deprecation and Sunset headers and, when available, a successor
+    Link."
+  note: >-
+    The policy is published but no Deprecation or Sunset header appears anywhere in the current
+    OpenAPI document, which is consistent with the stated state below.
+current_deprecations:
+  count: 0
+  statement: No v1 endpoints or fields are currently scheduled for removal.
+deprecated_operations: []
+status_page:
+  human: https://pagesnap.142-93-197-141.sslip.io/status
+  machine: https://pagesnap.142-93-197-141.sslip.io/v1/status
+  health: https://pagesnap.142-93-197-141.sslip.io/healthz
+  auth_required: false
+  probe:
+    url: https://pagesnap.142-93-197-141.sslip.io/v1/status
+    http_status: 200
+    observed: '2026-09-02'
+    sample:
+      status: operational
+      uptime_today_percent: 100
+      uptime_last_90_days_percent: 98.43
+  cache: 60 seconds
+  contents: >-
+    status=operational|degraded, probe uptime for today/7/30/90 days, daily probe samples,
+    one-hour median latency and sample count, engine and admission queue depths, and the latest
+    public incident.
+  note: >-
+    A machine-readable status endpoint alongside the human page is rare; healthz is a separate
+    lower-level engine/admission check that may return 503.
+sla:
+  exists: false
+  statement: >-
+    "The single-VPS service has no SLA." Production runs on one VPS in New York City with no
+    multi-region failover. Measured history is public at /status and /v1/status instead of a
+    contractual commitment.
+retention:
+  request_logs: 30 days, capped at 500,000 rows
+  page_cache: 10 minutes (read/meta/extract); 5 minutes (screenshot/PDF)
+  temporary_result_links: 1 hour, housekeeping removes remnants after roughly 2 hours
+  crawl_job_results: 24 hours, capped at 32 MiB
+  monitor_history: latest 100 checks, 10 changed snapshots and 10 diffs per monitor; snapshots capped at 500 KB
+  a2a_tasks: process-local, expire after 10 minutes
+  abuse_records: key-to-IP 30 days; checkout attempts 35 days
+  visit_and_service_history: up to 400 days
+  account_and_payment_records: retained while the service operates
+  raw_api_keys: never stored (SHA-256 hash only)
+changelog:
+  url: https://pagesnap.142-93-197-141.sslip.io/log
+  detail: changelog/pagesnap-changelog.yml
+maturity:
+  stage: experimental
+  note: >-
+    Self-described experiment. Launched 2026-09-02 on one VPS; built, deployed, documented and
+    supported by AI agents within a human owner's scope, with the human retaining server and
+    wallet control. Treat availability claims accordingly.

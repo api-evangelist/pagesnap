@@ -1,0 +1,122 @@
+generated: '2026-09-02'
+method: derived
+source: openapi/pagesnap-openapi.json
+note: >-
+  Pagesnap is mostly a stateless transformation API - read, screenshot, PDF, meta, extract and
+  render create no persistent object at all. Only four entity families outlive a request: the API
+  key/account, monitors, asynchronous crawl jobs, and payment orders. Relationships below are read
+  from $ref links and id-reference fields in the spec; nothing is inferred from naming alone.
+id_prefixes:
+  - prefix: ps_live_
+    entity: ApiKey
+    source: components.securitySchemes.bearer.bearerFormat
+  - prefix: mon_
+    entity: Monitor
+    source: /docs monitor examples
+  - prefix: ord_
+    entity: Order
+    source: /docs checkout examples
+  - prefix: crawl_
+    entity: Job
+    source: /docs pagesnap_wait_job example
+entities:
+  - name: ApiKey
+    schema: KeyCreated
+    persistent: true
+    key: opaque secret, stored server-side as a SHA-256 hash only
+    fields: [key, plan, trial, plan_expires_at, limits, referral_bonus]
+    note: >-
+      The raw key is returned exactly once at createKey and is unrecoverable. Optional label and
+      email; no email is required.
+  - name: Account
+    schema: Account
+    persistent: true
+    fields: [plan, trial, trial_days_remaining, link_grant, limits, usage, orders, referral]
+    note: The account IS the key - getAccount (/v1/me) is the key's own view of itself.
+  - name: LinkGrant
+    schema: LinkGrant
+    persistent: true
+    fields: [page_url, status, granted_at, pro_expires_at, last_checked_at, next_check_at]
+  - name: Monitor
+    schema: Monitor
+    persistent: true
+    fields: [id, url, mode, interval, selector, threshold_percent, webhook_url, webhook_enabled, webhook_failures, webhook_note, screenshot_options, status, paused_reason, created_at, next_check_at, last_checked_at, last_changed_at, last_check]
+    note: >-
+      MonitorWithSecret is the creation-time variant carrying webhook_secret exactly once;
+      MonitorWithChecks is the read variant with recent MonitorCheckResult history.
+  - name: MonitorCheckResult
+    schema: MonitorCheckResult
+    persistent: true
+    retention: latest 100 checks, 10 changed snapshots and 10 diffs per monitor
+  - name: Job
+    schema: CrawlJob
+    persistent: true
+    fields: [status, progress, result_url, error]
+    retention: 24 hours; result capped at 32 MiB
+    note: >-
+      Created by crawlSite or generateLlmsTxt when the effective limit exceeds 25 pages. The
+      result_url is an unguessable bearer capability, not an id lookup.
+  - name: Order
+    schema: Checkout / CheckoutStatus
+    persistent: true
+    fields: [order_id, pay_url, status_url, amount_usd, expires_at, options, status, plan, plan_expires_at, tx, shortfall]
+    retention: retained while the service operates, so receipts stay auditable
+  - name: SupportTicket
+    schema: SupportTicketResponse
+    persistent: true
+    fields: [ticket_url, ticket, messages]
+    note: Accountless - the ticket URL itself is the capability.
+transient_results:
+  - ReadResult
+  - MetaResult
+  - ExtractResult
+  - BatchResult
+  - CrawlPage
+  - CrawlResult
+  - LlmsTxtResult
+  - VisualDiff
+  - TextDiff
+  - note: Returned and cached in bounded process memory (5-10 minutes); never addressable by id.
+relationships:
+  - from: Account
+    to: Monitor
+    type: has_many
+    via: implicit ownership by API key (listMonitors returns the key's monitors)
+    cardinality: plan-capped at 0/2/10/50/200
+  - from: Monitor
+    to: MonitorCheckResult
+    type: has_many
+    via: last_check + checks[] on MonitorWithChecks
+  - from: Monitor
+    to: Webhook delivery
+    type: has_one
+    via: webhook_url + webhook_secret
+  - from: Account
+    to: Order
+    type: has_many
+    via: Account.orders[]
+  - from: Order
+    to: Receipt
+    type: has_one
+    via: /pay/{order_id}/receipt.html and .pdf
+  - from: Account
+    to: LinkGrant
+    type: has_one
+    via: Account.link_grant
+  - from: Account
+    to: Referral
+    type: has_one
+    via: Account.referral
+  - from: Job
+    to: CrawlResult
+    type: has_one
+    via: result_url capability (getCrawlJobResult)
+  - from: ApiKey
+    to: Account
+    type: has_one
+    via: the key is the account identifier
+capability_urls:
+  note: >-
+    Three surfaces address objects by unguessable URL rather than by owned id - crawl job results
+    (24 h), temporary result files (1 h), and support tickets. Treat these as bearer secrets;
+    possession is authorization.

@@ -1,0 +1,72 @@
+generated: '2026-09-02'
+method: probed
+source: https://pagesnap.142-93-197-141.sslip.io/.well-known/
+note: >-
+  Every path below was fetched once, unauthenticated, on 2026-09-02. Pagesnap serves an unusually
+  dense well-known surface for a single-VPS service: an RFC 9116 security.txt, an RFC 9727
+  api-catalog linkset, an A2A 1.0 agent card with its JWKS signing keys, an x402 v2 resource
+  manifest, and an Agentic Resource Discovery (ARD) manifest published at two paths. No OAuth or
+  OpenID surface exists because the API is key/bearer authenticated, not OAuth.
+hosts:
+  - host: pagesnap.142-93-197-141.sslip.io
+    documents:
+      - path: /.well-known/security.txt
+        status: 200
+        file: well-known/pagesnap-security.txt
+        content_type: text/plain
+        note: RFC 9116; Contact + Policy (/trust) + Expires 2027-08-31.
+      - path: /.well-known/api-catalog
+        status: 200
+        file: well-known/pagesnap-api-catalog.json
+        content_type: application/linkset+json
+        note: >-
+          RFC 9727 linkset. service-desc points at /openapi.json
+          (application/vnd.oai.openapi+json;version=3.1), service-doc at /docs, and item[] lists 13
+          v1 and x402 resources.
+      - path: /.well-known/agent-card.json
+        status: 200
+        file: a2a/pagesnap-agent-card.json
+        content_type: application/json
+        note: A2A 1.0 agent card, JWS-signed. Graded in a2a/pagesnap-a2a.yml.
+      - path: /.well-known/jwks.json
+        status: 200
+        file: well-known/pagesnap-jwks.json
+        content_type: application/jwk-set+json
+        note: >-
+          RS256 signing key (kid xM0hRyUxREl0sD-cx9iAVC6o) for the agent card's detached JWS. The
+          card's protected header carries a matching jku pointing back at this path.
+      - path: /.well-known/x402
+        status: 200
+        file: well-known/pagesnap-x402.json
+        content_type: application/json
+        note: >-
+          x402 v2 resource manifest listing 7 keyless per-call USDC routes on Base
+          (eip155:8453). Not an IETF path; the x402 project convention.
+      - path: /.well-known/ard.json
+        status: 200
+        file: well-known/pagesnap-ard.json
+        content_type: application/ld+json
+        note: >-
+          Agentic Resource Discovery 0.91 manifest, urn:air:...:a2a:web-reader, pointing back at
+          the agent card and naming 6 capabilities plus representative queries.
+      - path: /.well-known/ai-catalog.json
+        status: 200
+        file: well-known/pagesnap-ard.json
+        content_type: application/ld+json
+        note: Byte-identical alias of /.well-known/ard.json; not saved twice.
+      - path: /.well-known/openid-configuration
+        status: 404
+      - path: /.well-known/oauth-authorization-server
+        status: 404
+      - path: /.well-known/oauth-protected-resource
+        status: 404
+        note: >-
+          The MCP endpoint is anonymous-capable, so it issues no RFC 9728 protected-resource
+          challenge; an optional bearer key raises quota rather than gating access.
+      - path: /.well-known/ai-plugin.json
+        status: 404
+      - path: /.well-known/aauth-resource.json
+        status: 404
+      - path: /.well-known/agent.json
+        status: 404
+        note: Legacy pre-0.3 A2A path is not served; the canonical agent-card.json is.
