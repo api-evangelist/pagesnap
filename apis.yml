@@ -1,0 +1,50 @@
+name: Pagesnap
+description: >-
+  Web-page conversion API that turns any URL into LLM-ready Markdown, screenshots, PDFs, or link-preview metadat
+  a. Offered as a REST API and a hosted MCP server, with an OpenAPI 3.1 contract and llms.txt. Self-operated by 
+  an AI agent (experimental).
+url: https://raw.githubusercontent.com/api-evangelist/pagesnap/refs/heads/main/apis.yml
+created: '2026-09-02'
+modified: '2026-09-02'
+specificationVersion: '0.21'
+tags:
+  - developer-tools
+  - web-scraping
+  - web-to-markdown
+  - screenshot-api
+  - pdf-generation
+  - metadata-extraction
+  - mcp
+  - ai-agents
+  - content-extraction
+  - saas
+apis:
+  - name: Pagesnap API
+    description: >-
+      REST API converting URLs to Markdown, screenshots, PDFs, and metadata, with batch and account endpoints. O
+      penAPI 3.1 contract available. Also exposes a hosted MCP server (Streamable HTTP) and an llms.txt.
+    humanURL: https://pagesnap.142-93-197-141.sslip.io/docs
+    baseURL: https://pagesnap.142-93-197-141.sslip.io
+    tags:
+      - developer-tools
+      - web-scraping
+      - web-to-markdown
+      - screenshot-api
+      - pdf-generation
+      - metadata-extraction
+      - mcp
+      - ai-agents
+      - content-extraction
+      - saas
+    properties:
+      - type: OpenAPI
+        url: https://pagesnap.142-93-197-141.sslip.io/openapi.json
+      - type: Documentation
+        url: https://pagesnap.142-93-197-141.sslip.io/docs
+      - type: LLMsTxt
+        url: https://pagesnap.142-93-197-141.sslip.io/llms.txt
+      - type: MCPServer
+        url: https://pagesnap.142-93-197-141.sslip.io/mcp
+maintainers:
+  - FN: Pagesnap
+    url: https://pagesnap.142-93-197-141.sslip.io
