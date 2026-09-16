@@ -16,6 +16,24 @@ created: '2026-09-02'
 modified: '2026-09-02'
 specificationVersion: '0.21'
 tags:
+- Developer Tools
+- Web Scraping
+- web-to-markdown
+- screenshot-api
+- PDF Generation
+- Metadata Extraction
+- MCP
+- A2A
+- x402
+- AI Agents
+- Content Extraction
+- Structured Data
+- Web Crawling
+- Change Monitoring
+- llms-txt
+- Agent Payments
+- Software-as-a-Service
+tags_raw:
 - developer-tools
 - web-scraping
 - web-to-markdown
@@ -34,33 +52,16 @@ tags:
 - agent-payments
 - saas
 apis:
-- name: Pagesnap API
-  description: >-
-    REST API converting public URLs to Markdown, text, HTML, JSON, ARIA trees, screenshots, PDFs, link-preview
-    metadata and normalized structured data, plus batch reads, robots-aware crawls with a 202 job handshake,
-    llms.txt generation, visual and text diffs, persisted change monitors with HMAC-signed webhooks, accountless
-    support tickets, crypto checkout with durable receipts, and public status/stats JSON. 66 operations
-    across 58 paths in a generated OpenAPI 3.1 document. Global security is optional: every content operation
-    is callable with no credential at a lower quota, a ps_live_ bearer key raises it, and seven mirrored
-    /x402/v1/* routes take keyless per-call USDC on Base instead of plan quota.
+- aid: pagesnap:pagesnap-account-api
+  name: Pagesnap Account API
+  description: Keys, usage, referrals
   humanURL: https://pagesnap.142-93-197-141.sslip.io/docs
   baseURL: https://pagesnap.142-93-197-141.sslip.io
   tags:
-  - developer-tools
-  - web-scraping
-  - web-to-markdown
-  - screenshot-api
-  - pdf-generation
-  - metadata-extraction
-  - mcp
-  - ai-agents
-  - content-extraction
-  - saas
+  - Account
   properties:
   - type: OpenAPI
-    url: https://pagesnap.142-93-197-141.sslip.io/openapi.json
-  - type: OpenAPI
-    url: openapi/pagesnap-openapi.json
+    url: openapi/pagesnap-account-api-openapi.yml
   - type: Documentation
     url: https://pagesnap.142-93-197-141.sslip.io/docs
   - type: APIReference
@@ -71,10 +72,6 @@ apis:
     url: https://pagesnap.142-93-197-141.sslip.io/llms.txt
   - type: LLMsTxt
     url: llms/pagesnap-llms.txt
-  - type: MCPServer
-    url: https://pagesnap.142-93-197-141.sslip.io/mcp
-  - type: MCPServer
-    url: mcp/pagesnap-mcp.yml
   - type: ToolCrosswalk
     url: mcp/pagesnap-tool-crosswalk.yml
   - type: AgentCard
@@ -93,13 +90,397 @@ apis:
     url: rate-limits/pagesnap-rate-limits.yml
   - type: Webhooks
     url: asyncapi/pagesnap-webhooks.yml
-  - type: Overlay
-    url: overlays/pagesnap-api-overlay.yaml
+- aid: pagesnap:pagesnap-agents-api
+  name: Pagesnap Agents API
+  description: MCP and A2A protocols
+  humanURL: https://pagesnap.142-93-197-141.sslip.io/docs
+  baseURL: https://pagesnap.142-93-197-141.sslip.io
+  tags:
+  - Agents
+  properties:
+  - type: OpenAPI
+    url: openapi/pagesnap-agents-api-openapi.yml
+  - type: Documentation
+    url: https://pagesnap.142-93-197-141.sslip.io/docs
+  - type: APIReference
+    url: https://pagesnap.142-93-197-141.sslip.io/docs
+  - type: GettingStarted
+    url: https://pagesnap.142-93-197-141.sslip.io/agents
+  - type: LLMsTxt
+    url: https://pagesnap.142-93-197-141.sslip.io/llms.txt
+  - type: LLMsTxt
+    url: llms/pagesnap-llms.txt
+  - type: ToolCrosswalk
+    url: mcp/pagesnap-tool-crosswalk.yml
+  - type: AgentCard
+    url: a2a/pagesnap-a2a.yml
+  - type: AgentCard
+    url: https://pagesnap.142-93-197-141.sslip.io/.well-known/agent-card.json
+  - type: Authentication
+    url: authentication/pagesnap-authentication.yml
+  - type: Conventions
+    url: conventions/pagesnap-conventions.yml
+  - type: ErrorCatalog
+    url: errors/pagesnap-problem-types.yml
+  - type: DataModel
+    url: data-model/pagesnap-data-model.yml
+  - type: RateLimits
+    url: rate-limits/pagesnap-rate-limits.yml
+  - type: Webhooks
+    url: asyncapi/pagesnap-webhooks.yml
+- aid: pagesnap:pagesnap-billing-api
+  name: Pagesnap Billing API
+  description: Checkout and receipts
+  humanURL: https://pagesnap.142-93-197-141.sslip.io/docs
+  baseURL: https://pagesnap.142-93-197-141.sslip.io
+  tags:
+  - Billing
+  properties:
+  - type: OpenAPI
+    url: openapi/pagesnap-billing-api-openapi.yml
+  - type: Documentation
+    url: https://pagesnap.142-93-197-141.sslip.io/docs
+  - type: APIReference
+    url: https://pagesnap.142-93-197-141.sslip.io/docs
+  - type: GettingStarted
+    url: https://pagesnap.142-93-197-141.sslip.io/agents
+  - type: LLMsTxt
+    url: https://pagesnap.142-93-197-141.sslip.io/llms.txt
+  - type: LLMsTxt
+    url: llms/pagesnap-llms.txt
+  - type: ToolCrosswalk
+    url: mcp/pagesnap-tool-crosswalk.yml
+  - type: AgentCard
+    url: a2a/pagesnap-a2a.yml
+  - type: AgentCard
+    url: https://pagesnap.142-93-197-141.sslip.io/.well-known/agent-card.json
+  - type: Authentication
+    url: authentication/pagesnap-authentication.yml
+  - type: Conventions
+    url: conventions/pagesnap-conventions.yml
+  - type: ErrorCatalog
+    url: errors/pagesnap-problem-types.yml
+  - type: DataModel
+    url: data-model/pagesnap-data-model.yml
+  - type: RateLimits
+    url: rate-limits/pagesnap-rate-limits.yml
+  - type: Webhooks
+    url: asyncapi/pagesnap-webhooks.yml
+- aid: pagesnap:pagesnap-content-api
+  name: Pagesnap Content API
+  description: Reading and rendering
+  humanURL: https://pagesnap.142-93-197-141.sslip.io/docs
+  baseURL: https://pagesnap.142-93-197-141.sslip.io
+  tags:
+  - Content
+  properties:
+  - type: OpenAPI
+    url: openapi/pagesnap-content-api-openapi.yml
+  - type: Documentation
+    url: https://pagesnap.142-93-197-141.sslip.io/docs
+  - type: APIReference
+    url: https://pagesnap.142-93-197-141.sslip.io/docs
+  - type: GettingStarted
+    url: https://pagesnap.142-93-197-141.sslip.io/agents
+  - type: LLMsTxt
+    url: https://pagesnap.142-93-197-141.sslip.io/llms.txt
+  - type: LLMsTxt
+    url: llms/pagesnap-llms.txt
+  - type: ToolCrosswalk
+    url: mcp/pagesnap-tool-crosswalk.yml
+  - type: AgentCard
+    url: a2a/pagesnap-a2a.yml
+  - type: AgentCard
+    url: https://pagesnap.142-93-197-141.sslip.io/.well-known/agent-card.json
+  - type: Authentication
+    url: authentication/pagesnap-authentication.yml
+  - type: Conventions
+    url: conventions/pagesnap-conventions.yml
+  - type: ErrorCatalog
+    url: errors/pagesnap-problem-types.yml
+  - type: DataModel
+    url: data-model/pagesnap-data-model.yml
+  - type: RateLimits
+    url: rate-limits/pagesnap-rate-limits.yml
+  - type: Webhooks
+    url: asyncapi/pagesnap-webhooks.yml
+- aid: pagesnap:pagesnap-crawl-api
+  name: Pagesnap Crawl API
+  description: Site crawls and asynchronous jobs
+  humanURL: https://pagesnap.142-93-197-141.sslip.io/docs
+  baseURL: https://pagesnap.142-93-197-141.sslip.io
+  tags:
+  - Crawl
+  properties:
+  - type: OpenAPI
+    url: openapi/pagesnap-crawl-api-openapi.yml
+  - type: Documentation
+    url: https://pagesnap.142-93-197-141.sslip.io/docs
+  - type: APIReference
+    url: https://pagesnap.142-93-197-141.sslip.io/docs
+  - type: GettingStarted
+    url: https://pagesnap.142-93-197-141.sslip.io/agents
+  - type: LLMsTxt
+    url: https://pagesnap.142-93-197-141.sslip.io/llms.txt
+  - type: LLMsTxt
+    url: llms/pagesnap-llms.txt
+  - type: ToolCrosswalk
+    url: mcp/pagesnap-tool-crosswalk.yml
+  - type: AgentCard
+    url: a2a/pagesnap-a2a.yml
+  - type: AgentCard
+    url: https://pagesnap.142-93-197-141.sslip.io/.well-known/agent-card.json
+  - type: Authentication
+    url: authentication/pagesnap-authentication.yml
+  - type: Conventions
+    url: conventions/pagesnap-conventions.yml
+  - type: ErrorCatalog
+    url: errors/pagesnap-problem-types.yml
+  - type: DataModel
+    url: data-model/pagesnap-data-model.yml
+  - type: RateLimits
+    url: rate-limits/pagesnap-rate-limits.yml
+  - type: Webhooks
+    url: asyncapi/pagesnap-webhooks.yml
+- aid: pagesnap:pagesnap-diff-api
+  name: Pagesnap Diff API
+  description: Two-page comparison
+  humanURL: https://pagesnap.142-93-197-141.sslip.io/docs
+  baseURL: https://pagesnap.142-93-197-141.sslip.io
+  tags:
+  - Diff
+  properties:
+  - type: OpenAPI
+    url: openapi/pagesnap-diff-api-openapi.yml
+  - type: Documentation
+    url: https://pagesnap.142-93-197-141.sslip.io/docs
+  - type: APIReference
+    url: https://pagesnap.142-93-197-141.sslip.io/docs
+  - type: GettingStarted
+    url: https://pagesnap.142-93-197-141.sslip.io/agents
+  - type: LLMsTxt
+    url: https://pagesnap.142-93-197-141.sslip.io/llms.txt
+  - type: LLMsTxt
+    url: llms/pagesnap-llms.txt
+  - type: ToolCrosswalk
+    url: mcp/pagesnap-tool-crosswalk.yml
+  - type: AgentCard
+    url: a2a/pagesnap-a2a.yml
+  - type: AgentCard
+    url: https://pagesnap.142-93-197-141.sslip.io/.well-known/agent-card.json
+  - type: Authentication
+    url: authentication/pagesnap-authentication.yml
+  - type: Conventions
+    url: conventions/pagesnap-conventions.yml
+  - type: ErrorCatalog
+    url: errors/pagesnap-problem-types.yml
+  - type: DataModel
+    url: data-model/pagesnap-data-model.yml
+  - type: RateLimits
+    url: rate-limits/pagesnap-rate-limits.yml
+  - type: Webhooks
+    url: asyncapi/pagesnap-webhooks.yml
+- aid: pagesnap:pagesnap-discovery-api
+  name: Pagesnap Discovery API
+  description: Machine-readable discovery resources
+  humanURL: https://pagesnap.142-93-197-141.sslip.io/docs
+  baseURL: https://pagesnap.142-93-197-141.sslip.io
+  tags:
+  - Discovery
+  properties:
+  - type: OpenAPI
+    url: openapi/pagesnap-discovery-api-openapi.yml
+  - type: Documentation
+    url: https://pagesnap.142-93-197-141.sslip.io/docs
+  - type: APIReference
+    url: https://pagesnap.142-93-197-141.sslip.io/docs
+  - type: GettingStarted
+    url: https://pagesnap.142-93-197-141.sslip.io/agents
+  - type: LLMsTxt
+    url: https://pagesnap.142-93-197-141.sslip.io/llms.txt
+  - type: LLMsTxt
+    url: llms/pagesnap-llms.txt
+  - type: ToolCrosswalk
+    url: mcp/pagesnap-tool-crosswalk.yml
+  - type: AgentCard
+    url: a2a/pagesnap-a2a.yml
+  - type: AgentCard
+    url: https://pagesnap.142-93-197-141.sslip.io/.well-known/agent-card.json
+  - type: Authentication
+    url: authentication/pagesnap-authentication.yml
+  - type: Conventions
+    url: conventions/pagesnap-conventions.yml
+  - type: ErrorCatalog
+    url: errors/pagesnap-problem-types.yml
+  - type: DataModel
+    url: data-model/pagesnap-data-model.yml
+  - type: RateLimits
+    url: rate-limits/pagesnap-rate-limits.yml
+  - type: Webhooks
+    url: asyncapi/pagesnap-webhooks.yml
+- aid: pagesnap:pagesnap-monitors-api
+  name: Pagesnap Monitors API
+  description: Persisted change monitoring
+  humanURL: https://pagesnap.142-93-197-141.sslip.io/docs
+  baseURL: https://pagesnap.142-93-197-141.sslip.io
+  tags:
+  - Monitors
+  properties:
+  - type: OpenAPI
+    url: openapi/pagesnap-monitors-api-openapi.yml
+  - type: Documentation
+    url: https://pagesnap.142-93-197-141.sslip.io/docs
+  - type: APIReference
+    url: https://pagesnap.142-93-197-141.sslip.io/docs
+  - type: GettingStarted
+    url: https://pagesnap.142-93-197-141.sslip.io/agents
+  - type: LLMsTxt
+    url: https://pagesnap.142-93-197-141.sslip.io/llms.txt
+  - type: LLMsTxt
+    url: llms/pagesnap-llms.txt
+  - type: ToolCrosswalk
+    url: mcp/pagesnap-tool-crosswalk.yml
+  - type: AgentCard
+    url: a2a/pagesnap-a2a.yml
+  - type: AgentCard
+    url: https://pagesnap.142-93-197-141.sslip.io/.well-known/agent-card.json
+  - type: Authentication
+    url: authentication/pagesnap-authentication.yml
+  - type: Conventions
+    url: conventions/pagesnap-conventions.yml
+  - type: ErrorCatalog
+    url: errors/pagesnap-problem-types.yml
+  - type: DataModel
+    url: data-model/pagesnap-data-model.yml
+  - type: RateLimits
+    url: rate-limits/pagesnap-rate-limits.yml
+  - type: Webhooks
+    url: asyncapi/pagesnap-webhooks.yml
+- aid: pagesnap:pagesnap-status-api
+  name: Pagesnap Status API
+  description: Public health and stats
+  humanURL: https://pagesnap.142-93-197-141.sslip.io/docs
+  baseURL: https://pagesnap.142-93-197-141.sslip.io
+  tags:
+  - Status
+  properties:
+  - type: OpenAPI
+    url: openapi/pagesnap-status-api-openapi.yml
+  - type: Documentation
+    url: https://pagesnap.142-93-197-141.sslip.io/docs
+  - type: APIReference
+    url: https://pagesnap.142-93-197-141.sslip.io/docs
+  - type: GettingStarted
+    url: https://pagesnap.142-93-197-141.sslip.io/agents
+  - type: LLMsTxt
+    url: https://pagesnap.142-93-197-141.sslip.io/llms.txt
+  - type: LLMsTxt
+    url: llms/pagesnap-llms.txt
+  - type: ToolCrosswalk
+    url: mcp/pagesnap-tool-crosswalk.yml
+  - type: AgentCard
+    url: a2a/pagesnap-a2a.yml
+  - type: AgentCard
+    url: https://pagesnap.142-93-197-141.sslip.io/.well-known/agent-card.json
+  - type: Authentication
+    url: authentication/pagesnap-authentication.yml
+  - type: Conventions
+    url: conventions/pagesnap-conventions.yml
+  - type: ErrorCatalog
+    url: errors/pagesnap-problem-types.yml
+  - type: DataModel
+    url: data-model/pagesnap-data-model.yml
+  - type: RateLimits
+    url: rate-limits/pagesnap-rate-limits.yml
+  - type: Webhooks
+    url: asyncapi/pagesnap-webhooks.yml
+- aid: pagesnap:pagesnap-support-api
+  name: Pagesnap Support API
+  description: Capability-based support tickets
+  humanURL: https://pagesnap.142-93-197-141.sslip.io/docs
+  baseURL: https://pagesnap.142-93-197-141.sslip.io
+  tags:
+  - Support
+  properties:
+  - type: OpenAPI
+    url: openapi/pagesnap-support-api-openapi.yml
+  - type: Documentation
+    url: https://pagesnap.142-93-197-141.sslip.io/docs
+  - type: APIReference
+    url: https://pagesnap.142-93-197-141.sslip.io/docs
+  - type: GettingStarted
+    url: https://pagesnap.142-93-197-141.sslip.io/agents
+  - type: LLMsTxt
+    url: https://pagesnap.142-93-197-141.sslip.io/llms.txt
+  - type: LLMsTxt
+    url: llms/pagesnap-llms.txt
+  - type: ToolCrosswalk
+    url: mcp/pagesnap-tool-crosswalk.yml
+  - type: AgentCard
+    url: a2a/pagesnap-a2a.yml
+  - type: AgentCard
+    url: https://pagesnap.142-93-197-141.sslip.io/.well-known/agent-card.json
+  - type: Authentication
+    url: authentication/pagesnap-authentication.yml
+  - type: Conventions
+    url: conventions/pagesnap-conventions.yml
+  - type: ErrorCatalog
+    url: errors/pagesnap-problem-types.yml
+  - type: DataModel
+    url: data-model/pagesnap-data-model.yml
+  - type: RateLimits
+    url: rate-limits/pagesnap-rate-limits.yml
+  - type: Webhooks
+    url: asyncapi/pagesnap-webhooks.yml
+- aid: pagesnap:pagesnap-x402-api
+  name: Pagesnap X402 API
+  description: Keyless USDC per-call payment
+  humanURL: https://pagesnap.142-93-197-141.sslip.io/docs
+  baseURL: https://pagesnap.142-93-197-141.sslip.io
+  tags:
+  - x402
+  properties:
+  - type: OpenAPI
+    url: openapi/pagesnap-x402-api-openapi.yml
+  - type: Documentation
+    url: https://pagesnap.142-93-197-141.sslip.io/docs
+  - type: APIReference
+    url: https://pagesnap.142-93-197-141.sslip.io/docs
+  - type: GettingStarted
+    url: https://pagesnap.142-93-197-141.sslip.io/agents
+  - type: LLMsTxt
+    url: https://pagesnap.142-93-197-141.sslip.io/llms.txt
+  - type: LLMsTxt
+    url: llms/pagesnap-llms.txt
+  - type: ToolCrosswalk
+    url: mcp/pagesnap-tool-crosswalk.yml
+  - type: AgentCard
+    url: a2a/pagesnap-a2a.yml
+  - type: AgentCard
+    url: https://pagesnap.142-93-197-141.sslip.io/.well-known/agent-card.json
+  - type: Authentication
+    url: authentication/pagesnap-authentication.yml
+  - type: Conventions
+    url: conventions/pagesnap-conventions.yml
+  - type: ErrorCatalog
+    url: errors/pagesnap-problem-types.yml
+  - type: DataModel
+    url: data-model/pagesnap-data-model.yml
+  - type: RateLimits
+    url: rate-limits/pagesnap-rate-limits.yml
+  - type: Webhooks
+    url: asyncapi/pagesnap-webhooks.yml
 maintainers:
 - FN: Pagesnap
   url: https://pagesnap.142-93-197-141.sslip.io
   email: hello@pagesnap.142-93-197-141.sslip.io
 common:
+- type: MCPServer
+  url: https://pagesnap.142-93-197-141.sslip.io/mcp
+- type: MCPServer
+  url: mcp/pagesnap-mcp.yml
+- type: Overlay
+  url: overlays/pagesnap-api-overlay.yaml
 - type: DeveloperPortal
   url: https://pagesnap.142-93-197-141.sslip.io
 - type: Documentation
