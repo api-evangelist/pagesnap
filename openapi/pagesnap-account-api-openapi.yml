@@ -1,0 +1,481 @@
+openapi: 3.2.0
+info:
+  title: Pagesnap Account API
+  version: 1.1.0
+  description: Turn public HTTP(S) URLs into Markdown, structured data, images, PDFs, crawls, diffs, and monitors. Anonymous, API-key, agent-protocol, and x402 payment surfaces are described from the same runtime contract.
+  contact:
+    url: https://pagesnap.142-93-197-141.sslip.io/support
+  license:
+    name: Service terms
+    url: https://pagesnap.142-93-197-141.sslip.io/terms
+  x-guidance: For keyless USDC requests, call an /x402/v1 route once without payment, decode PAYMENT-REQUIRED, then retry the same request with PAYMENT-SIGNATURE.
+servers:
+- url: https://pagesnap.142-93-197-141.sslip.io
+security:
+- {}
+- bearer: []
+- apiHeader: []
+- apiQuery: []
+tags:
+- name: Account
+  description: Keys, usage, referrals
+paths:
+  /v1/keys:
+    post:
+      operationId: createKey
+      summary: Create an API key with an eligible 7-day Pro trial
+      tags:
+      - Account
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              properties:
+                label:
+                  type: string
+                  maxLength: 80
+                email:
+                  type: string
+                  format: email
+                  maxLength: 200
+                ref:
+                  type: string
+                  description: Optional referral code; its daily bonus begins after the Pro trial.
+      responses:
+        '201':
+          description: Raw key shown once, trial status, plan limits, and referral data.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/KeyCreated'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+  /v1/link-verify:
+    post:
+      operationId: verifyLinkGrant
+      summary: Verify a public link and grant 90 days of Pro
+      description: Fetches through the SSRF-safe HTTP path without browser rendering. Visible anchors, including nofollow, and raw URLs in rendered GitHub READMEs are accepted. Each page and key can earn once; one grant per requester IP hash per 30 days.
+      tags:
+      - Account
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required:
+              - key
+              - page_url
+              properties:
+                key:
+                  type: string
+                  writeOnly: true
+                  pattern: ^ps_live_
+                page_url:
+                  type: string
+                  format: uri
+                  pattern: ^https?://
+                  maxLength: 4096
+      responses:
+        '200':
+          description: Pro link grant.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LinkGrantResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/Unprocessable'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '502':
+          $ref: '#/components/responses/UpstreamFailure'
+  /v1/me:
+    get:
+      operationId: getAccount
+      summary: Get plan, usage, orders, receipts, and referral data
+      tags:
+      - Account
+      security:
+      - {}
+      - bearer: []
+      - apiHeader: []
+      - apiQuery: []
+      responses:
+        '200':
+          description: Caller account or anonymous usage.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Account'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /v1/usage:
+    get:
+      operationId: getUsage
+      summary: Alias of /v1/me
+      tags:
+      - Account
+      security:
+      - {}
+      - bearer: []
+      - apiHeader: []
+      - apiQuery: []
+      responses:
+        '200':
+          description: Caller account or anonymous usage.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Account'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+components:
+  schemas:
+    KeyCreated:
+      type: object
+      required:
+      - ok
+      - key
+      - plan
+      - trial
+      - limits
+      additionalProperties: true
+      properties:
+        ok:
+          const: true
+        key:
+          type: string
+          writeOnly: true
+        plan:
+          type: string
+          enum:
+          - free
+          - pro
+        trial:
+          type: boolean
+        plan_expires_at:
+          type:
+          - integer
+          - 'null'
+          description: Unix milliseconds; normally seven days after creation for a trial.
+        limits:
+          type: object
+        referral_bonus:
+          type: object
+    LinkGrant:
+      type: object
+      required:
+      - page_url
+      - status
+      - granted_at
+      - pro_expires_at
+      - last_checked_at
+      - next_check_at
+      properties:
+        page_url:
+          type: string
+          format: uri
+          pattern: ^https?://
+          maxLength: 4096
+        status:
+          type: string
+          enum:
+          - active
+          - missing
+          - error
+        granted_at:
+          type: integer
+        pro_expires_at:
+          type: integer
+        last_checked_at:
+          type: integer
+        next_check_at:
+          type: integer
+    LinkGrantResponse:
+      type: object
+      required:
+      - ok
+      - plan
+      - grant
+      properties:
+        ok:
+          const: true
+        plan:
+          const: pro
+        grant:
+          $ref: '#/components/schemas/LinkGrant'
+        dashboard:
+          type: string
+          format: uri
+    Account:
+      type: object
+      required:
+      - ok
+      - plan
+      - limits
+      - usage
+      additionalProperties: true
+      properties:
+        ok:
+          const: true
+        plan:
+          type: string
+        trial:
+          type: boolean
+        trial_days_remaining:
+          type: integer
+        link_grant:
+          anyOf:
+          - $ref: '#/components/schemas/LinkGrant'
+          - type: 'null'
+        limits:
+          type: object
+        usage:
+          type: object
+        orders:
+          type: array
+          items:
+            type: object
+        referral:
+          type:
+          - object
+          - 'null'
+    Error:
+      type: object
+      required:
+      - error
+      properties:
+        error:
+          type: object
+          required:
+          - code
+          - message
+          properties:
+            code:
+              type: string
+              enum:
+              - MISSING_URL
+              - INVALID_URL
+              - INVALID_ACTIONS
+              - MISSING_HTML
+              - MISSING_URLS
+              - BATCH_TOO_LARGE
+              - BAD_REQUEST
+              - INVALID_KEY
+              - KEY_REQUIRED
+              - KEY_DISABLED
+              - BLOCKED_URL
+              - TIMEOUT
+              - ACTION_FAILED
+              - TOO_LARGE
+              - RESULT_TOO_LARGE
+              - UNSUPPORTED
+              - UNSUPPORTED_MEDIA
+              - RATE_LIMITED
+              - TARGET_BUSY
+              - ANON_GLOBAL_QUOTA
+              - DAILY_QUOTA
+              - MONTHLY_QUOTA
+              - CONCURRENCY
+              - KEY_LIMIT
+              - KEY_SPIKE_LIMIT
+              - BUSY
+              - ENGINE_UNAVAILABLE
+              - NAV_FAILED
+              - HTTP_ERROR
+              - BROWSER_ERROR
+              - JOB_QUEUE_FULL
+              - JOB_NOT_FOUND
+              - JOB_NOT_READY
+              - RESULT_UNAVAILABLE
+              - INVALID_MODE
+              - MONITOR_LIMIT
+              - MONITOR_NOT_FOUND
+              - MONITOR_RUNNING
+              - MONITOR_PAUSED
+              - PLAN_INTERVAL
+              - SNAPSHOT_TOO_LARGE
+              - INVALID_INTERVAL
+              - INVALID_THRESHOLD
+              - INVALID_SELECTOR
+              - INVALID_PLAN
+              - CHECKOUT_CONTEXT_REQUIRED
+              - CHECKOUT_KEY_LIMIT
+              - CHECKOUT_IP_LIMIT
+              - BILLING_UNAVAILABLE
+              - INVOICE_UNAVAILABLE
+              - ORDER_NOT_FOUND
+              - INVOICE_NOT_FOUND
+              - PAYMENT_REPLAY
+              - FACILITATOR_UNAVAILABLE
+              - SETTLEMENT_UNVERIFIED
+              - TICKET_LIMIT
+              - NOT_FOUND
+              - INTERNAL
+            message:
+              type: string
+            reason:
+              type: string
+              enum:
+              - bot_protection
+              - interactive_challenge
+              - ip_policy_or_geo_block
+            upstream_status:
+              type: integer
+              minimum: 100
+              maximum: 599
+  responses:
+    RateLimited:
+      description: Caller, quota, concurrency, or target-host limit reached.
+      headers:
+        Retry-After:
+          schema:
+            type: integer
+            minimum: 0
+          description: Seconds to wait when supplied.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    BadRequest:
+      description: Invalid or missing input.
+      headers:
+        Retry-After:
+          schema:
+            type: integer
+            minimum: 0
+          description: Seconds to wait when supplied.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    UpstreamFailure:
+      description: Target or rendering engine failed.
+      headers:
+        Retry-After:
+          schema:
+            type: integer
+            minimum: 0
+          description: Seconds to wait when supplied.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    Conflict:
+      description: Current resource state conflicts with the request.
+      headers:
+        Retry-After:
+          schema:
+            type: integer
+            minimum: 0
+          description: Seconds to wait when supplied.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    Unauthorized:
+      description: Missing or invalid credentials.
+      headers:
+        Retry-After:
+          schema:
+            type: integer
+            minimum: 0
+          description: Seconds to wait when supplied.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    Unprocessable:
+      description: Input is understood but unsupported or cannot be processed.
+      headers:
+        Retry-After:
+          schema:
+            type: integer
+            minimum: 0
+          description: Seconds to wait when supplied.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    Forbidden:
+      description: Disabled key, plan restriction, or blocked target.
+      headers:
+        Retry-After:
+          schema:
+            type: integer
+            minimum: 0
+          description: Seconds to wait when supplied.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+  securitySchemes:
+    bearer:
+      type: http
+      scheme: bearer
+      bearerFormat: ps_live_…
+      description: Pagesnap API key.
+    apiHeader:
+      type: apiKey
+      in: header
+      name: X-API-Key
+    apiQuery:
+      type: apiKey
+      in: query
+      name: key
+      description: Compatibility only; headers avoid key leakage in URLs.
+    x402:
+      type: apiKey
+      in: header
+      name: PAYMENT-SIGNATURE
+      description: x402 v2 exact EIP-3009 USDC authorization on Base; X-PAYMENT is a legacy alias.
+x-pagesnap-limits:
+  quotaUnits:
+    read: 1
+    screenshot: 1
+    pdf: 1
+    meta: 1
+    extract: 1
+    render: 1
+    diff: 2
+    batch: one per URL
+    crawl: one per reserved page
+    llmsTxt: one per reserved page
+    monitorCheck: 1
+  planCrawlCaps:
+    anon: 5
+    free: 25
+    starter: 50
+    pro: 200
+    scale: 200
+  synchronousCrawlPages: 25
+  target:
+    perMin: 60
+    concurrency: 3
+  monitorCaps:
+    free: 2
+    starter: 10
+    pro: 50
+    scale: 200
+  jobRetentionHours: 24
+  temporaryLinkHours: 1

@@ -1,0 +1,40 @@
+{
+  "provider": "pagesnap",
+  "sources": [
+    "_original/pagesnap-openapi.json"
+  ],
+  "outputs": [
+    "pagesnap-account-api-openapi.yml",
+    "pagesnap-agents-api-openapi.yml",
+    "pagesnap-billing-api-openapi.yml",
+    "pagesnap-content-api-openapi.yml",
+    "pagesnap-crawl-api-openapi.yml",
+    "pagesnap-diff-api-openapi.yml",
+    "pagesnap-discovery-api-openapi.yml",
+    "pagesnap-monitors-api-openapi.yml",
+    "pagesnap-status-api-openapi.yml",
+    "pagesnap-support-api-openapi.yml",
+    "pagesnap-x402-api-openapi.yml"
+  ],
+  "archived": [],
+  "errors": [],
+  "warnings": [],
+  "notes": [
+    "sourced from openapi/_original/ (1 archived document(s)); previously refined output at the top level was skipped rather than re-split",
+    "pagesnap-openapi.json: upgraded openapi 3.1.0 -> OpenAPI 3.2.0",
+    "apis.yml register: already-registered"
+  ],
+  "skipped": [
+    "pagesnap-account-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "pagesnap-agents-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "pagesnap-billing-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "pagesnap-content-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "pagesnap-crawl-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "pagesnap-diff-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "pagesnap-discovery-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "pagesnap-monitors-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "pagesnap-status-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "pagesnap-support-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "pagesnap-x402-api-openapi.yml: previously refined output, superseded by openapi/_original/"
+  ]
+}

@@ -1,0 +1,403 @@
+openapi: 3.2.0
+info:
+  title: Pagesnap Discovery API
+  version: 1.1.0
+  description: Turn public HTTP(S) URLs into Markdown, structured data, images, PDFs, crawls, diffs, and monitors. Anonymous, API-key, agent-protocol, and x402 payment surfaces are described from the same runtime contract.
+  contact:
+    url: https://pagesnap.142-93-197-141.sslip.io/support
+  license:
+    name: Service terms
+    url: https://pagesnap.142-93-197-141.sslip.io/terms
+  x-guidance: For keyless USDC requests, call an /x402/v1 route once without payment, decode PAYMENT-REQUIRED, then retry the same request with PAYMENT-SIGNATURE.
+servers:
+- url: https://pagesnap.142-93-197-141.sslip.io
+security:
+- {}
+- bearer: []
+- apiHeader: []
+- apiQuery: []
+tags:
+- name: Discovery
+  description: Machine-readable discovery resources
+paths:
+  /.well-known/agent-card.json:
+    get:
+      operationId: agentCard
+      summary: Get the A2A agent card
+      tags:
+      - Discovery
+      security: []
+      responses:
+        '200':
+          description: A2A 1.0 agent card.
+          content:
+            application/json:
+              schema:
+                type: object
+        '304':
+          description: Not modified.
+  /.well-known/jwks.json:
+    get:
+      operationId: agentJwks
+      summary: Get A2A card signing keys
+      tags:
+      - Discovery
+      security: []
+      responses:
+        '200':
+          description: JSON Web Key Set for Agent Card signatures.
+          content:
+            application/json:
+              schema:
+                type: object
+        '304':
+          description: Not modified.
+  /.well-known/api-catalog:
+    get:
+      operationId: apiCatalog
+      summary: Get the RFC 9727 API catalog
+      tags:
+      - Discovery
+      security: []
+      responses:
+        '200':
+          description: Linkset API catalog.
+          content:
+            application/json:
+              schema:
+                type: object
+          headers:
+            ETag:
+              schema:
+                type: string
+        '304':
+          description: Not modified.
+  /.well-known/security.txt:
+    get:
+      operationId: securityTxt
+      summary: Get the security contact policy
+      tags:
+      - Discovery
+      security: []
+      responses:
+        '200':
+          description: RFC-style security contact text.
+          content:
+            text/plain:
+              schema:
+                type: string
+  /.well-known/x402:
+    get:
+      operationId: x402Manifest
+      summary: List x402 resources
+      tags:
+      - Discovery
+      security: []
+      responses:
+        '200':
+          description: x402 resource manifest.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  version:
+                    type: integer
+                  resources:
+                    type: array
+                    items:
+                      type: string
+                      format: uri
+                  instructions:
+                    type: string
+        '304':
+          description: Not modified.
+  /.well-known/ard.json:
+    get:
+      operationId: ardManifest
+      summary: Get the Agentic Resource Discovery manifest
+      tags:
+      - Discovery
+      security: []
+      responses:
+        '200':
+          description: ARD JSON-LD manifest.
+          content:
+            application/json:
+              schema:
+                type: object
+        '304':
+          description: Not modified.
+  /.well-known/ai-catalog.json:
+    get:
+      operationId: aiCatalog
+      summary: Alias of the ARD manifest
+      tags:
+      - Discovery
+      security: []
+      responses:
+        '200':
+          description: ARD JSON-LD manifest.
+          content:
+            application/json:
+              schema:
+                type: object
+        '304':
+          description: Not modified.
+  /badge.svg:
+    get:
+      operationId: poweredByBadge
+      summary: Get the static Powered by Pagesnap badge
+      tags:
+      - Discovery
+      security: []
+      responses:
+        '200':
+          description: Immutable SVG badge.
+          content:
+            image/svg+xml:
+              schema:
+                type: string
+  /humans.txt:
+    get:
+      operationId: humansTxt
+      summary: Get human/operator disclosure
+      tags:
+      - Discovery
+      security: []
+      responses:
+        '200':
+          description: Plain-text disclosure.
+          content:
+            text/plain:
+              schema:
+                type: string
+  /llms.txt:
+    get:
+      operationId: llmsTxt
+      summary: Get the concise LLM-facing API index
+      tags:
+      - Discovery
+      security: []
+      responses:
+        '200':
+          description: Plain-text API index.
+          content:
+            text/plain:
+              schema:
+                type: string
+  /llms-full.txt:
+    get:
+      operationId: llmsFullTxt
+      summary: Get compiled full documentation
+      tags:
+      - Discovery
+      security: []
+      responses:
+        '200':
+          description: Compiled plain-text documentation.
+          content:
+            text/plain:
+              schema:
+                type: string
+  /og/{hash}.png:
+    get:
+      operationId: ogImage
+      summary: Get an immutable generated Open Graph image
+      tags:
+      - Discovery
+      security: []
+      parameters:
+      - name: hash
+        in: path
+        required: true
+        schema:
+          type: string
+          pattern: ^[a-f0-9]{24}$
+      responses:
+        '200':
+          description: PNG image.
+          content:
+            image/png:
+              schema:
+                type: string
+                format: binary
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /openapi.json:
+    get:
+      operationId: openapiJson
+      summary: Get this OpenAPI document as JSON
+      tags:
+      - Discovery
+      security: []
+      responses:
+        '200':
+          description: OpenAPI 3.1 document.
+          content:
+            application/json:
+              schema:
+                type: object
+  /openapi.yaml:
+    get:
+      operationId: openapiYaml
+      summary: Get this OpenAPI document as YAML
+      tags:
+      - Discovery
+      security: []
+      responses:
+        '200':
+          description: OpenAPI 3.1 YAML.
+          content:
+            application/yaml:
+              schema:
+                type: string
+components:
+  schemas:
+    Error:
+      type: object
+      required:
+      - error
+      properties:
+        error:
+          type: object
+          required:
+          - code
+          - message
+          properties:
+            code:
+              type: string
+              enum:
+              - MISSING_URL
+              - INVALID_URL
+              - INVALID_ACTIONS
+              - MISSING_HTML
+              - MISSING_URLS
+              - BATCH_TOO_LARGE
+              - BAD_REQUEST
+              - INVALID_KEY
+              - KEY_REQUIRED
+              - KEY_DISABLED
+              - BLOCKED_URL
+              - TIMEOUT
+              - ACTION_FAILED
+              - TOO_LARGE
+              - RESULT_TOO_LARGE
+              - UNSUPPORTED
+              - UNSUPPORTED_MEDIA
+              - RATE_LIMITED
+              - TARGET_BUSY
+              - ANON_GLOBAL_QUOTA
+              - DAILY_QUOTA
+              - MONTHLY_QUOTA
+              - CONCURRENCY
+              - KEY_LIMIT
+              - KEY_SPIKE_LIMIT
+              - BUSY
+              - ENGINE_UNAVAILABLE
+              - NAV_FAILED
+              - HTTP_ERROR
+              - BROWSER_ERROR
+              - JOB_QUEUE_FULL
+              - JOB_NOT_FOUND
+              - JOB_NOT_READY
+              - RESULT_UNAVAILABLE
+              - INVALID_MODE
+              - MONITOR_LIMIT
+              - MONITOR_NOT_FOUND
+              - MONITOR_RUNNING
+              - MONITOR_PAUSED
+              - PLAN_INTERVAL
+              - SNAPSHOT_TOO_LARGE
+              - INVALID_INTERVAL
+              - INVALID_THRESHOLD
+              - INVALID_SELECTOR
+              - INVALID_PLAN
+              - CHECKOUT_CONTEXT_REQUIRED
+              - CHECKOUT_KEY_LIMIT
+              - CHECKOUT_IP_LIMIT
+              - BILLING_UNAVAILABLE
+              - INVOICE_UNAVAILABLE
+              - ORDER_NOT_FOUND
+              - INVOICE_NOT_FOUND
+              - PAYMENT_REPLAY
+              - FACILITATOR_UNAVAILABLE
+              - SETTLEMENT_UNVERIFIED
+              - TICKET_LIMIT
+              - NOT_FOUND
+              - INTERNAL
+            message:
+              type: string
+            reason:
+              type: string
+              enum:
+              - bot_protection
+              - interactive_challenge
+              - ip_policy_or_geo_block
+            upstream_status:
+              type: integer
+              minimum: 100
+              maximum: 599
+  responses:
+    NotFound:
+      description: Resource not found or expired.
+      headers:
+        Retry-After:
+          schema:
+            type: integer
+            minimum: 0
+          description: Seconds to wait when supplied.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+  securitySchemes:
+    bearer:
+      type: http
+      scheme: bearer
+      bearerFormat: ps_live_…
+      description: Pagesnap API key.
+    apiHeader:
+      type: apiKey
+      in: header
+      name: X-API-Key
+    apiQuery:
+      type: apiKey
+      in: query
+      name: key
+      description: Compatibility only; headers avoid key leakage in URLs.
+    x402:
+      type: apiKey
+      in: header
+      name: PAYMENT-SIGNATURE
+      description: x402 v2 exact EIP-3009 USDC authorization on Base; X-PAYMENT is a legacy alias.
+x-pagesnap-limits:
+  quotaUnits:
+    read: 1
+    screenshot: 1
+    pdf: 1
+    meta: 1
+    extract: 1
+    render: 1
+    diff: 2
+    batch: one per URL
+    crawl: one per reserved page
+    llmsTxt: one per reserved page
+    monitorCheck: 1
+  planCrawlCaps:
+    anon: 5
+    free: 25
+    starter: 50
+    pro: 200
+    scale: 200
+  synchronousCrawlPages: 25
+  target:
+    perMin: 60
+    concurrency: 3
+  monitorCaps:
+    free: 2
+    starter: 10
+    pro: 50
+    scale: 200
+  jobRetentionHours: 24
+  temporaryLinkHours: 1

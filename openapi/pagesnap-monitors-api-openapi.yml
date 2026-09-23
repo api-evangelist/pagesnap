@@ -1,0 +1,980 @@
+openapi: 3.2.0
+info:
+  title: Pagesnap Monitors API
+  version: 1.1.0
+  description: Turn public HTTP(S) URLs into Markdown, structured data, images, PDFs, crawls, diffs, and monitors. Anonymous, API-key, agent-protocol, and x402 payment surfaces are described from the same runtime contract.
+  contact:
+    url: https://pagesnap.142-93-197-141.sslip.io/support
+  license:
+    name: Service terms
+    url: https://pagesnap.142-93-197-141.sslip.io/terms
+  x-guidance: For keyless USDC requests, call an /x402/v1 route once without payment, decode PAYMENT-REQUIRED, then retry the same request with PAYMENT-SIGNATURE.
+servers:
+- url: https://pagesnap.142-93-197-141.sslip.io
+security:
+- {}
+- bearer: []
+- apiHeader: []
+- apiQuery: []
+tags:
+- name: Monitors
+  description: Persisted change monitoring
+paths:
+  /v1/monitors:
+    post:
+      operationId: createMonitor
+      summary: Create a persisted monitor
+      tags:
+      - Monitors
+      security:
+      - bearer: []
+      - apiHeader: []
+      - apiQuery: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MonitorInput'
+      responses:
+        '201':
+          description: Monitor; webhook_secret appears only here.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - ok
+                - monitor
+                properties:
+                  ok:
+                    const: true
+                  monitor:
+                    $ref: '#/components/schemas/MonitorWithSecret'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/Unprocessable'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '502':
+          $ref: '#/components/responses/UpstreamFailure'
+        '503':
+          $ref: '#/components/responses/Unavailable'
+    get:
+      operationId: listMonitors
+      summary: List monitors
+      tags:
+      - Monitors
+      security:
+      - bearer: []
+      - apiHeader: []
+      - apiQuery: []
+      responses:
+        '200':
+          description: Owned monitors.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - ok
+                - monitors
+                properties:
+                  ok:
+                    const: true
+                  monitors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Monitor'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/Unprocessable'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '502':
+          $ref: '#/components/responses/UpstreamFailure'
+        '503':
+          $ref: '#/components/responses/Unavailable'
+  /v1/monitors/{monitor_id}:
+    get:
+      operationId: getMonitor
+      summary: Get a monitor and recent checks
+      tags:
+      - Monitors
+      security:
+      - bearer: []
+      - apiHeader: []
+      - apiQuery: []
+      parameters:
+      - name: monitor_id
+        in: path
+        required: true
+        schema:
+          type: string
+          pattern: ^mon_[A-Za-z0-9_-]+$
+      responses:
+        '200':
+          description: Monitor and up to 50 checks.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    const: true
+                  monitor:
+                    $ref: '#/components/schemas/MonitorWithChecks'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/Unprocessable'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '502':
+          $ref: '#/components/responses/UpstreamFailure'
+        '503':
+          $ref: '#/components/responses/Unavailable'
+    delete:
+      operationId: deleteMonitor
+      summary: Delete a monitor and snapshots
+      tags:
+      - Monitors
+      security:
+      - bearer: []
+      - apiHeader: []
+      - apiQuery: []
+      parameters:
+      - name: monitor_id
+        in: path
+        required: true
+        schema:
+          type: string
+          pattern: ^mon_[A-Za-z0-9_-]+$
+      responses:
+        '200':
+          description: Deleted monitor ID.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    const: true
+                  deleted:
+                    type: string
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/Unprocessable'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '502':
+          $ref: '#/components/responses/UpstreamFailure'
+        '503':
+          $ref: '#/components/responses/Unavailable'
+  /v1/monitors/{monitor_id}/check:
+    post:
+      operationId: checkMonitor
+      summary: Run a monitor check now
+      tags:
+      - Monitors
+      security:
+      - bearer: []
+      - apiHeader: []
+      - apiQuery: []
+      parameters:
+      - name: monitor_id
+        in: path
+        required: true
+        schema:
+          type: string
+      x-pagesnap-quota:
+        units: 1
+      responses:
+        '200':
+          description: Monitor and check result.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    const: true
+                  monitor:
+                    $ref: '#/components/schemas/MonitorCheckResult'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/Unprocessable'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '502':
+          $ref: '#/components/responses/UpstreamFailure'
+        '503':
+          $ref: '#/components/responses/Unavailable'
+  /v1/monitors/{monitor_id}/pause:
+    post:
+      operationId: pauseMonitor
+      summary: Pause a monitor
+      tags:
+      - Monitors
+      security:
+      - bearer: []
+      - apiHeader: []
+      - apiQuery: []
+      parameters:
+      - name: monitor_id
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Paused monitor.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    const: true
+                  monitor:
+                    $ref: '#/components/schemas/Monitor'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/Unprocessable'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '502':
+          $ref: '#/components/responses/UpstreamFailure'
+        '503':
+          $ref: '#/components/responses/Unavailable'
+  /v1/monitors/{monitor_id}/resume:
+    post:
+      operationId: resumeMonitor
+      summary: Resume a monitor
+      tags:
+      - Monitors
+      security:
+      - bearer: []
+      - apiHeader: []
+      - apiQuery: []
+      parameters:
+      - name: monitor_id
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Active monitor.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    const: true
+                  monitor:
+                    $ref: '#/components/schemas/Monitor'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/Unprocessable'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '502':
+          $ref: '#/components/responses/UpstreamFailure'
+        '503':
+          $ref: '#/components/responses/Unavailable'
+components:
+  schemas:
+    Actions:
+      type: array
+      maxItems: 10
+      items:
+        oneOf:
+        - type: object
+          additionalProperties: false
+          required:
+          - type
+          - selector
+          properties:
+            type:
+              enum:
+              - click
+              - hover
+              - hide
+              - remove
+            selector:
+              type: string
+              minLength: 1
+              maxLength: 1000
+        - type: object
+          additionalProperties: false
+          required:
+          - type
+          - selector
+          - value
+          properties:
+            type:
+              const: fill
+            selector:
+              type: string
+              minLength: 1
+              maxLength: 1000
+            value:
+              type: string
+              maxLength: 100000
+        - type: object
+          additionalProperties: false
+          required:
+          - type
+          - selector
+          - value
+          properties:
+            type:
+              const: select
+            selector:
+              type: string
+              minLength: 1
+              maxLength: 1000
+            value:
+              oneOf:
+              - type: string
+                maxLength: 10000
+              - type: array
+                minItems: 1
+                maxItems: 100
+                items:
+                  type: string
+                  maxLength: 10000
+        - type: object
+          additionalProperties: false
+          required:
+          - type
+          - key
+          properties:
+            type:
+              const: press
+            selector:
+              type: string
+              minLength: 1
+              maxLength: 1000
+            key:
+              type: string
+              minLength: 1
+              maxLength: 100
+        - type: object
+          additionalProperties: false
+          required:
+          - type
+          oneOf:
+          - required:
+            - selector
+          - anyOf:
+            - required:
+              - x
+            - required:
+              - y
+          properties:
+            type:
+              const: scroll
+            selector:
+              type: string
+              minLength: 1
+              maxLength: 1000
+            x:
+              type: number
+              minimum: -100000
+              maximum: 100000
+            y:
+              type: number
+              minimum: -100000
+              maximum: 100000
+        - type: object
+          additionalProperties: false
+          required:
+          - type
+          - ms
+          properties:
+            type:
+              const: wait
+            ms:
+              type: integer
+              minimum: 0
+              maximum: 5000
+        - type: object
+          additionalProperties: false
+          required:
+          - type
+          - selector
+          properties:
+            type:
+              const: wait_for
+            selector:
+              type: string
+              minLength: 1
+              maxLength: 1000
+            state:
+              type: string
+              enum:
+              - attached
+              - detached
+              - visible
+              - hidden
+              default: visible
+        - type: object
+          additionalProperties: false
+          required:
+          - type
+          - width
+          - height
+          properties:
+            type:
+              const: set_viewport
+            width:
+              type: integer
+              minimum: 200
+              maximum: 3840
+            height:
+              type: integer
+              minimum: 200
+              maximum: 10000
+    MonitorCheckResult:
+      allOf:
+      - $ref: '#/components/schemas/Monitor'
+      - type: object
+        properties:
+          check:
+            type: object
+            properties:
+              ts:
+                type: string
+                format: date-time
+              changed:
+                type: boolean
+              percent:
+                type: number
+              snapshot_url:
+                type:
+                - string
+                - 'null'
+              diff_url:
+                type:
+                - string
+                - 'null'
+              webhook:
+                type:
+                - object
+                - 'null'
+    MonitorWithChecks:
+      allOf:
+      - $ref: '#/components/schemas/Monitor'
+      - type: object
+        properties:
+          checks:
+            type: array
+            maxItems: 50
+            items:
+              type: object
+              properties:
+                ts:
+                  type: string
+                  format: date-time
+                changed:
+                  type: boolean
+                percent:
+                  type: number
+                error:
+                  type:
+                  - string
+                  - 'null'
+                snapshot_url:
+                  type:
+                  - string
+                  - 'null'
+                diff_url:
+                  type:
+                  - string
+                  - 'null'
+    MonitorInput:
+      type: object
+      additionalProperties: true
+      required:
+      - url
+      properties:
+        url:
+          type: string
+          format: uri
+          pattern: ^https?://
+          maxLength: 4096
+        mode:
+          type: string
+          enum:
+          - text
+          - visual
+          - meta
+          default: text
+        interval:
+          type: string
+          enum:
+          - 1h
+          - 6h
+          - 24h
+          default: 24h
+        selector:
+          type: string
+          maxLength: 1000
+        threshold_percent:
+          type: number
+          minimum: 0
+          maximum: 100
+          default: 1
+        webhook_url:
+          type: string
+          format: uri
+          pattern: ^https?://
+          maxLength: 4096
+        screenshot_options:
+          type: object
+          properties:
+            url:
+              type: string
+              format: uri
+              pattern: ^https?://
+              maxLength: 4096
+            width:
+              type: integer
+              minimum: 200
+              maximum: 3840
+              default: 1280
+            height:
+              type: integer
+              minimum: 200
+              maximum: 10000
+              default: 800
+            full_page:
+              type: boolean
+              default: false
+            format:
+              type: string
+              enum:
+              - png
+              - jpeg
+              - jpg
+              - webp
+              default: png
+            quality:
+              type: integer
+              minimum: 1
+              maximum: 100
+              default: 80
+            scale:
+              type: number
+              minimum: 1
+              maximum: 3
+              default: 1
+            dark:
+              type: boolean
+              default: false
+            wait:
+              type: integer
+              minimum: 0
+              maximum: 10000
+              default: 0
+            wait_until:
+              type: string
+              enum:
+              - load
+              - domcontentloaded
+              - networkidle
+            block_ads:
+              type: boolean
+              default: true
+            hide_cookie_banners:
+              type: boolean
+              default: true
+            timeout:
+              type: integer
+              minimum: 3000
+              maximum: 45000
+              default: 25000
+            selector:
+              type: string
+              maxLength: 200
+            device:
+              type: string
+              maxLength: 40
+            user_agent:
+              type: string
+              maxLength: 300
+            actions:
+              $ref: '#/components/schemas/Actions'
+            lang:
+              type: string
+              maxLength: 35
+              default: en-US
+            timezone:
+              type: string
+              default: UTC
+    MonitorWithSecret:
+      allOf:
+      - $ref: '#/components/schemas/Monitor'
+      - type: object
+        required:
+        - webhook_secret
+        properties:
+          webhook_secret:
+            type: string
+            writeOnly: true
+    Monitor:
+      type: object
+      required:
+      - id
+      - url
+      - mode
+      - interval
+      - threshold_percent
+      - status
+      additionalProperties: true
+      properties:
+        id:
+          type: string
+        url:
+          type: string
+        mode:
+          type: string
+          enum:
+          - text
+          - visual
+          - meta
+        interval:
+          type: string
+          enum:
+          - 1h
+          - 6h
+          - 24h
+        selector:
+          type:
+          - string
+          - 'null'
+        threshold_percent:
+          type: number
+        webhook_url:
+          type:
+          - string
+          - 'null'
+        webhook_enabled:
+          type: boolean
+        webhook_failures:
+          type: integer
+        webhook_note:
+          type:
+          - string
+          - 'null'
+        screenshot_options:
+          type: object
+        status:
+          type: string
+          enum:
+          - active
+          - paused
+        paused_reason:
+          type:
+          - string
+          - 'null'
+        created_at:
+          type: string
+          format: date-time
+        next_check_at:
+          type: string
+          format: date-time
+        last_checked_at:
+          type:
+          - string
+          - 'null'
+        last_changed_at:
+          type:
+          - string
+          - 'null'
+        last_check:
+          type:
+          - object
+          - 'null'
+    Error:
+      type: object
+      required:
+      - error
+      properties:
+        error:
+          type: object
+          required:
+          - code
+          - message
+          properties:
+            code:
+              type: string
+              enum:
+              - MISSING_URL
+              - INVALID_URL
+              - INVALID_ACTIONS
+              - MISSING_HTML
+              - MISSING_URLS
+              - BATCH_TOO_LARGE
+              - BAD_REQUEST
+              - INVALID_KEY
+              - KEY_REQUIRED
+              - KEY_DISABLED
+              - BLOCKED_URL
+              - TIMEOUT
+              - ACTION_FAILED
+              - TOO_LARGE
+              - RESULT_TOO_LARGE
+              - UNSUPPORTED
+              - UNSUPPORTED_MEDIA
+              - RATE_LIMITED
+              - TARGET_BUSY
+              - ANON_GLOBAL_QUOTA
+              - DAILY_QUOTA
+              - MONTHLY_QUOTA
+              - CONCURRENCY
+              - KEY_LIMIT
+              - KEY_SPIKE_LIMIT
+              - BUSY
+              - ENGINE_UNAVAILABLE
+              - NAV_FAILED
+              - HTTP_ERROR
+              - BROWSER_ERROR
+              - JOB_QUEUE_FULL
+              - JOB_NOT_FOUND
+              - JOB_NOT_READY
+              - RESULT_UNAVAILABLE
+              - INVALID_MODE
+              - MONITOR_LIMIT
+              - MONITOR_NOT_FOUND
+              - MONITOR_RUNNING
+              - MONITOR_PAUSED
+              - PLAN_INTERVAL
+              - SNAPSHOT_TOO_LARGE
+              - INVALID_INTERVAL
+              - INVALID_THRESHOLD
+              - INVALID_SELECTOR
+              - INVALID_PLAN
+              - CHECKOUT_CONTEXT_REQUIRED
+              - CHECKOUT_KEY_LIMIT
+              - CHECKOUT_IP_LIMIT
+              - BILLING_UNAVAILABLE
+              - INVOICE_UNAVAILABLE
+              - ORDER_NOT_FOUND
+              - INVOICE_NOT_FOUND
+              - PAYMENT_REPLAY
+              - FACILITATOR_UNAVAILABLE
+              - SETTLEMENT_UNVERIFIED
+              - TICKET_LIMIT
+              - NOT_FOUND
+              - INTERNAL
+            message:
+              type: string
+            reason:
+              type: string
+              enum:
+              - bot_protection
+              - interactive_challenge
+              - ip_policy_or_geo_block
+            upstream_status:
+              type: integer
+              minimum: 100
+              maximum: 599
+  responses:
+    RateLimited:
+      description: Caller, quota, concurrency, or target-host limit reached.
+      headers:
+        Retry-After:
+          schema:
+            type: integer
+            minimum: 0
+          description: Seconds to wait when supplied.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    BadRequest:
+      description: Invalid or missing input.
+      headers:
+        Retry-After:
+          schema:
+            type: integer
+            minimum: 0
+          description: Seconds to wait when supplied.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    UpstreamFailure:
+      description: Target or rendering engine failed.
+      headers:
+        Retry-After:
+          schema:
+            type: integer
+            minimum: 0
+          description: Seconds to wait when supplied.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    Conflict:
+      description: Current resource state conflicts with the request.
+      headers:
+        Retry-After:
+          schema:
+            type: integer
+            minimum: 0
+          description: Seconds to wait when supplied.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    Unauthorized:
+      description: Missing or invalid credentials.
+      headers:
+        Retry-After:
+          schema:
+            type: integer
+            minimum: 0
+          description: Seconds to wait when supplied.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    Unprocessable:
+      description: Input is understood but unsupported or cannot be processed.
+      headers:
+        Retry-After:
+          schema:
+            type: integer
+            minimum: 0
+          description: Seconds to wait when supplied.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    Unavailable:
+      description: Capacity, facilitator, billing, or engine temporarily unavailable.
+      headers:
+        Retry-After:
+          schema:
+            type: integer
+            minimum: 0
+          description: Seconds to wait when supplied.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    Forbidden:
+      description: Disabled key, plan restriction, or blocked target.
+      headers:
+        Retry-After:
+          schema:
+            type: integer
+            minimum: 0
+          description: Seconds to wait when supplied.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+  securitySchemes:
+    bearer:
+      type: http
+      scheme: bearer
+      bearerFormat: ps_live_…
+      description: Pagesnap API key.
+    apiHeader:
+      type: apiKey
+      in: header
+      name: X-API-Key
+    apiQuery:
+      type: apiKey
+      in: query
+      name: key
+      description: Compatibility only; headers avoid key leakage in URLs.
+    x402:
+      type: apiKey
+      in: header
+      name: PAYMENT-SIGNATURE
+      description: x402 v2 exact EIP-3009 USDC authorization on Base; X-PAYMENT is a legacy alias.
+x-pagesnap-limits:
+  quotaUnits:
+    read: 1
+    screenshot: 1
+    pdf: 1
+    meta: 1
+    extract: 1
+    render: 1
+    diff: 2
+    batch: one per URL
+    crawl: one per reserved page
+    llmsTxt: one per reserved page
+    monitorCheck: 1
+  planCrawlCaps:
+    anon: 5
+    free: 25
+    starter: 50
+    pro: 200
+    scale: 200
+  synchronousCrawlPages: 25
+  target:
+    perMin: 60
+    concurrency: 3
+  monitorCaps:
+    free: 2
+    starter: 10
+    pro: 50
+    scale: 200
+  jobRetentionHours: 24
+  temporaryLinkHours: 1

@@ -1,0 +1,1631 @@
+openapi: 3.2.0
+info:
+  title: Pagesnap X402 API
+  version: 1.1.0
+  description: Turn public HTTP(S) URLs into Markdown, structured data, images, PDFs, crawls, diffs, and monitors. Anonymous, API-key, agent-protocol, and x402 payment surfaces are described from the same runtime contract.
+  contact:
+    url: https://pagesnap.142-93-197-141.sslip.io/support
+  license:
+    name: Service terms
+    url: https://pagesnap.142-93-197-141.sslip.io/terms
+  x-guidance: For keyless USDC requests, call an /x402/v1 route once without payment, decode PAYMENT-REQUIRED, then retry the same request with PAYMENT-SIGNATURE.
+servers:
+- url: https://pagesnap.142-93-197-141.sslip.io
+security:
+- {}
+- bearer: []
+- apiHeader: []
+- apiQuery: []
+tags:
+- name: X402
+  description: Keyless USDC per-call payment
+paths:
+  /x402/v1/read:
+    get:
+      operationId: readUrlX402
+      summary: Read a URL paid per call
+      tags:
+      - X402
+      security:
+      - x402: []
+      parameters:
+      - name: url
+        in: query
+        required: true
+        schema:
+          type: string
+          format: uri
+          pattern: ^https?://
+          maxLength: 4096
+        description: Public HTTP(S) URL; a missing scheme is accepted by the core /v1 URL endpoints and interpreted as HTTPS.
+      - name: format
+        in: query
+        required: false
+        schema:
+          type: string
+          enum:
+          - markdown
+          - md
+          - text
+          - html
+          - json
+          - aria
+          - links
+          default: markdown
+        description: Output representation. md aliases markdown; aria forces browser rendering.
+      - name: render
+        in: query
+        required: false
+        schema:
+          type: boolean
+          default: false
+        description: Force browser rendering.
+      - name: timeout
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 3000
+          maximum: 45000
+          default: 20000
+        description: Overall timeout.
+      - name: wait
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 0
+          maximum: 10000
+          default: 0
+        description: Extra post-load wait.
+      - name: links
+        in: query
+        required: false
+        schema:
+          type: boolean
+          default: true
+        description: Include links in JSON output.
+      - name: images
+        in: query
+        required: false
+        schema:
+          type: boolean
+          default: true
+        description: Include images in JSON output.
+      - name: full
+        in: query
+        required: false
+        schema:
+          type: boolean
+          default: false
+        description: Extract the full body rather than main content.
+      - name: max_chars
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 100
+          maximum: 2000000
+        description: Truncate Markdown at this character count and return a marker.
+      - name: page_markers
+        in: query
+        required: false
+        schema:
+          type: boolean
+          default: false
+        description: For PDFs, add optional <!-- page N --> markers.
+      - name: actions
+        in: query
+        required: false
+        schema:
+          type: string
+          contentMediaType: application/json
+        description: JSON-encoded array of at most 10 pre-capture actions. Prefer a POST JSON body.
+      - name: lang
+        in: query
+        required: false
+        schema:
+          type: string
+          maxLength: 35
+          default: en-US
+          examples:
+          - en-US
+          - ja-JP
+        description: Safe BCP-47 language tag.
+      - name: timezone
+        in: query
+        required: false
+        schema:
+          type: string
+          default: UTC
+          examples:
+          - UTC
+          - America/New_York
+        description: UTC or an IANA time zone supported by the runtime.
+      x-pagesnap-quota:
+        units: 0
+        paidSeparately: true
+      responses:
+        '200':
+          description: Extracted page content.
+          content:
+            text/markdown:
+              schema:
+                type: string
+            text/plain:
+              schema:
+                type: string
+            text/html:
+              schema:
+                type: string
+            text/yaml:
+              schema:
+                type: string
+                description: ARIA accessibility snapshot.
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReadResult'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '402':
+          description: x402 v2 exact payment required, invalid, or replayed. Decode PAYMENT-REQUIRED, sign the selected Base USDC requirement, and retry the request unchanged with PAYMENT-SIGNATURE.
+          headers:
+            PAYMENT-REQUIRED:
+              required: true
+              schema:
+                type: string
+              description: Base64-encoded x402 payment requirements.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '408':
+          $ref: '#/components/responses/Timeout'
+        '413':
+          $ref: '#/components/responses/TooLarge'
+        '422':
+          $ref: '#/components/responses/Unprocessable'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '502':
+          $ref: '#/components/responses/UpstreamFailure'
+        '503':
+          $ref: '#/components/responses/Unavailable'
+      x-payment-info:
+        protocol: x402
+        version: 2
+        scheme: exact
+        network: eip155:8453
+        asset: USDC
+        price:
+          mode: fixed
+          currency: USD
+          amount: '0.002'
+  /x402/v1/screenshot:
+    get:
+      operationId: screenshotUrlX402
+      summary: Capture a URL paid per call
+      tags:
+      - X402
+      security:
+      - x402: []
+      parameters:
+      - name: url
+        in: query
+        required: true
+        schema:
+          type: string
+          format: uri
+          pattern: ^https?://
+          maxLength: 4096
+        description: Public HTTP(S) URL; a missing scheme is accepted by the core /v1 URL endpoints and interpreted as HTTPS.
+      - name: width
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 200
+          maximum: 3840
+          default: 1280
+        description: Viewport width in CSS pixels.
+      - name: height
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 200
+          maximum: 10000
+          default: 800
+        description: Viewport height.
+      - name: full_page
+        in: query
+        required: false
+        schema:
+          type: boolean
+          default: false
+        description: Capture the full scrollable page.
+      - name: format
+        in: query
+        required: false
+        schema:
+          type: string
+          enum:
+          - png
+          - jpeg
+          - jpg
+          - webp
+          default: png
+        description: Image format; jpg aliases jpeg.
+      - name: quality
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 100
+          default: 80
+        description: JPEG/WebP quality.
+      - name: scale
+        in: query
+        required: false
+        schema:
+          type: number
+          minimum: 1
+          maximum: 3
+          default: 1
+        description: Device scale factor.
+      - name: dark
+        in: query
+        required: false
+        schema:
+          type: boolean
+          default: false
+        description: Emulate dark color scheme.
+      - name: wait
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 0
+          maximum: 10000
+          default: 0
+        description: Extra post-load wait in milliseconds.
+      - name: wait_until
+        in: query
+        required: false
+        schema:
+          type: string
+          enum:
+          - load
+          - domcontentloaded
+          - networkidle
+        description: Navigation completion event.
+      - name: block_ads
+        in: query
+        required: false
+        schema:
+          type: boolean
+          default: true
+        description: Block known ad/tracker requests.
+      - name: hide_cookie_banners
+        in: query
+        required: false
+        schema:
+          type: boolean
+          default: true
+        description: Hide common cookie banners.
+      - name: timeout
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 3000
+          maximum: 45000
+          default: 25000
+        description: Overall timeout in milliseconds.
+      - name: selector
+        in: query
+        required: false
+        schema:
+          type: string
+          maxLength: 200
+        description: CSS selector to clip.
+      - name: device
+        in: query
+        required: false
+        schema:
+          type: string
+          maxLength: 40
+        description: Playwright device name.
+      - name: user_agent
+        in: query
+        required: false
+        schema:
+          type: string
+          maxLength: 300
+        description: Custom user agent.
+      - name: actions
+        in: query
+        required: false
+        schema:
+          type: string
+          contentMediaType: application/json
+        description: JSON-encoded array of at most 10 pre-capture actions. Prefer a POST JSON body.
+      - name: lang
+        in: query
+        required: false
+        schema:
+          type: string
+          maxLength: 35
+          default: en-US
+          examples:
+          - en-US
+          - ja-JP
+        description: Safe BCP-47 language tag.
+      - name: timezone
+        in: query
+        required: false
+        schema:
+          type: string
+          default: UTC
+          examples:
+          - UTC
+          - America/New_York
+        description: UTC or an IANA time zone supported by the runtime.
+      x-pagesnap-quota:
+        units: 0
+        paidSeparately: true
+      responses:
+        '200':
+          description: Screenshot bytes.
+          content:
+            image/png:
+              schema:
+                type: string
+                format: binary
+            image/jpeg:
+              schema:
+                type: string
+                format: binary
+            image/webp:
+              schema:
+                type: string
+                format: binary
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '402':
+          description: x402 v2 exact payment required, invalid, or replayed. Decode PAYMENT-REQUIRED, sign the selected Base USDC requirement, and retry the request unchanged with PAYMENT-SIGNATURE.
+          headers:
+            PAYMENT-REQUIRED:
+              required: true
+              schema:
+                type: string
+              description: Base64-encoded x402 payment requirements.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '408':
+          $ref: '#/components/responses/Timeout'
+        '413':
+          $ref: '#/components/responses/TooLarge'
+        '422':
+          $ref: '#/components/responses/Unprocessable'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '502':
+          $ref: '#/components/responses/UpstreamFailure'
+        '503':
+          $ref: '#/components/responses/Unavailable'
+      x-payment-info:
+        protocol: x402
+        version: 2
+        scheme: exact
+        network: eip155:8453
+        asset: USDC
+        price:
+          mode: fixed
+          currency: USD
+          amount: '0.005'
+  /x402/v1/pdf:
+    get:
+      operationId: pdfUrlX402
+      summary: Render a PDF paid per call
+      tags:
+      - X402
+      security:
+      - x402: []
+      parameters:
+      - name: url
+        in: query
+        required: true
+        schema:
+          type: string
+          format: uri
+          pattern: ^https?://
+          maxLength: 4096
+        description: Public HTTP(S) URL; a missing scheme is accepted by the core /v1 URL endpoints and interpreted as HTTPS.
+      - name: format
+        in: query
+        required: false
+        schema:
+          type: string
+          enum:
+          - A4
+          - A3
+          - A5
+          - Letter
+          - Legal
+          - Tabloid
+          default: A4
+        description: Paper size.
+      - name: landscape
+        in: query
+        required: false
+        schema:
+          type: boolean
+          default: false
+        description: Landscape orientation.
+      - name: margin
+        in: query
+        required: false
+        schema:
+          type: string
+          maxLength: 30
+          default: 10mm
+        description: One CSS length used on all sides.
+      - name: print_background
+        in: query
+        required: false
+        schema:
+          type: boolean
+          default: true
+        description: Print backgrounds.
+      - name: scale
+        in: query
+        required: false
+        schema:
+          type: number
+          minimum: 0.1
+          maximum: 2
+          default: 1
+        description: Print scale.
+      - name: page_ranges
+        in: query
+        required: false
+        schema:
+          type: string
+          maxLength: 50
+        description: Chromium page-range expression, for example 1-3,5.
+      - name: device
+        in: query
+        required: false
+        schema:
+          type: string
+          maxLength: 40
+        description: Playwright device name.
+      - name: header
+        in: query
+        required: false
+        schema:
+          type: string
+          maxLength: 2048
+        description: Sanitized header template.
+      - name: footer
+        in: query
+        required: false
+        schema:
+          type: string
+          maxLength: 2048
+        description: Sanitized footer template.
+      - name: page_numbers
+        in: query
+        required: false
+        schema:
+          type: boolean
+          default: false
+        description: Add Page X of Y; cannot be combined with footer.
+      - name: wait
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 0
+          maximum: 10000
+          default: 0
+        description: Extra post-load wait.
+      - name: timeout
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 3000
+          maximum: 45000
+          default: 30000
+        description: Overall timeout.
+      - name: actions
+        in: query
+        required: false
+        schema:
+          type: string
+          contentMediaType: application/json
+        description: JSON-encoded array of at most 10 pre-capture actions. Prefer a POST JSON body.
+      - name: lang
+        in: query
+        required: false
+        schema:
+          type: string
+          maxLength: 35
+          default: en-US
+          examples:
+          - en-US
+          - ja-JP
+        description: Safe BCP-47 language tag.
+      - name: timezone
+        in: query
+        required: false
+        schema:
+          type: string
+          default: UTC
+          examples:
+          - UTC
+          - America/New_York
+        description: UTC or an IANA time zone supported by the runtime.
+      x-pagesnap-quota:
+        units: 0
+        paidSeparately: true
+      responses:
+        '200':
+          description: PDF bytes.
+          content:
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '402':
+          description: x402 v2 exact payment required, invalid, or replayed. Decode PAYMENT-REQUIRED, sign the selected Base USDC requirement, and retry the request unchanged with PAYMENT-SIGNATURE.
+          headers:
+            PAYMENT-REQUIRED:
+              required: true
+              schema:
+                type: string
+              description: Base64-encoded x402 payment requirements.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '408':
+          $ref: '#/components/responses/Timeout'
+        '413':
+          $ref: '#/components/responses/TooLarge'
+        '422':
+          $ref: '#/components/responses/Unprocessable'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '502':
+          $ref: '#/components/responses/UpstreamFailure'
+        '503':
+          $ref: '#/components/responses/Unavailable'
+      x-payment-info:
+        protocol: x402
+        version: 2
+        scheme: exact
+        network: eip155:8453
+        asset: USDC
+        price:
+          mode: fixed
+          currency: USD
+          amount: '0.005'
+  /x402/v1/meta:
+    get:
+      operationId: getMetaX402
+      summary: Get metadata paid per call
+      tags:
+      - X402
+      security:
+      - x402: []
+      parameters:
+      - name: url
+        in: query
+        required: true
+        schema:
+          type: string
+          format: uri
+          pattern: ^https?://
+          maxLength: 4096
+        description: Public HTTP(S) URL; a missing scheme is accepted by the core /v1 URL endpoints and interpreted as HTTPS.
+      x-pagesnap-quota:
+        units: 0
+        paidSeparately: true
+      responses:
+        '200':
+          description: Metadata.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MetaResult'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '402':
+          description: x402 v2 exact payment required, invalid, or replayed. Decode PAYMENT-REQUIRED, sign the selected Base USDC requirement, and retry the request unchanged with PAYMENT-SIGNATURE.
+          headers:
+            PAYMENT-REQUIRED:
+              required: true
+              schema:
+                type: string
+              description: Base64-encoded x402 payment requirements.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '408':
+          $ref: '#/components/responses/Timeout'
+        '413':
+          $ref: '#/components/responses/TooLarge'
+        '422':
+          $ref: '#/components/responses/Unprocessable'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '502':
+          $ref: '#/components/responses/UpstreamFailure'
+        '503':
+          $ref: '#/components/responses/Unavailable'
+      x-payment-info:
+        protocol: x402
+        version: 2
+        scheme: exact
+        network: eip155:8453
+        asset: USDC
+        price:
+          mode: fixed
+          currency: USD
+          amount: '0.002'
+  /x402/v1/extract:
+    get:
+      operationId: extractStructuredX402
+      summary: Extract structured data paid per call
+      tags:
+      - X402
+      security:
+      - x402: []
+      parameters:
+      - name: url
+        in: query
+        required: true
+        schema:
+          type: string
+          format: uri
+          pattern: ^https?://
+          maxLength: 4096
+        description: Public HTTP(S) URL; a missing scheme is accepted by the core /v1 URL endpoints and interpreted as HTTPS.
+      - name: timeout
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 3000
+          maximum: 45000
+          default: 20000
+        description: Overall timeout.
+      x-pagesnap-quota:
+        units: 0
+        paidSeparately: true
+      responses:
+        '200':
+          description: Structured extraction.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExtractResult'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '402':
+          description: x402 v2 exact payment required, invalid, or replayed. Decode PAYMENT-REQUIRED, sign the selected Base USDC requirement, and retry the request unchanged with PAYMENT-SIGNATURE.
+          headers:
+            PAYMENT-REQUIRED:
+              required: true
+              schema:
+                type: string
+              description: Base64-encoded x402 payment requirements.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '408':
+          $ref: '#/components/responses/Timeout'
+        '413':
+          $ref: '#/components/responses/TooLarge'
+        '422':
+          $ref: '#/components/responses/Unprocessable'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '502':
+          $ref: '#/components/responses/UpstreamFailure'
+        '503':
+          $ref: '#/components/responses/Unavailable'
+      x-payment-info:
+        protocol: x402
+        version: 2
+        scheme: exact
+        network: eip155:8453
+        asset: USDC
+        price:
+          mode: fixed
+          currency: USD
+          amount: '0.002'
+  /x402/v1/crawl:
+    post:
+      operationId: crawlSiteX402
+      summary: Crawl paid per requested page
+      tags:
+      - X402
+      security:
+      - x402: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required:
+              - url
+              properties:
+                url:
+                  type: string
+                  format: uri
+                  pattern: ^https?://
+                  maxLength: 4096
+                limit:
+                  type: integer
+                  minimum: 1
+                  maximum: 25
+                  default: 20
+                max_depth:
+                  type: integer
+                  minimum: 0
+                  maximum: 20
+                  default: 3
+                same_origin:
+                  type: boolean
+                  default: true
+                include:
+                  oneOf:
+                  - type: string
+                    maxLength: 500
+                  - type: array
+                    minItems: 1
+                    maxItems: 50
+                    items:
+                      type: string
+                      maxLength: 500
+                exclude:
+                  oneOf:
+                  - type: string
+                    maxLength: 500
+                  - type: array
+                    minItems: 1
+                    maxItems: 50
+                    items:
+                      type: string
+                      maxLength: 500
+                use_sitemap:
+                  type: boolean
+                  default: true
+                format:
+                  type: string
+                  enum:
+                  - markdown
+                  - json
+                  default: markdown
+      x-pagesnap-quota:
+        units: 0
+        paidSeparately: true
+      responses:
+        '200':
+          description: Synchronous crawl result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CrawlResult'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '402':
+          description: x402 v2 exact payment required, invalid, or replayed. Decode PAYMENT-REQUIRED, sign the selected Base USDC requirement, and retry the request unchanged with PAYMENT-SIGNATURE.
+          headers:
+            PAYMENT-REQUIRED:
+              required: true
+              schema:
+                type: string
+              description: Base64-encoded x402 payment requirements.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '408':
+          $ref: '#/components/responses/Timeout'
+        '413':
+          $ref: '#/components/responses/TooLarge'
+        '422':
+          $ref: '#/components/responses/Unprocessable'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '502':
+          $ref: '#/components/responses/UpstreamFailure'
+        '503':
+          $ref: '#/components/responses/Unavailable'
+      x-payment-info:
+        protocol: x402
+        version: 2
+        scheme: exact
+        network: eip155:8453
+        asset: USDC
+        price:
+          mode: dynamic
+          basis: per-requested-page
+          currency: USD
+          amount: '0.002'
+          minimum: '0.002'
+          maximum: '0.050'
+  /x402/v1/render:
+    post:
+      operationId: renderHtmlX402
+      summary: Render HTML paid per call
+      tags:
+      - X402
+      security:
+      - x402: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+              required:
+              - html
+              properties:
+                html:
+                  type: string
+                  minLength: 1
+                  maxLength: 1500000
+                type:
+                  type: string
+                  enum:
+                  - png
+                  - jpeg
+                  - jpg
+                  - webp
+                  - pdf
+                  default: png
+                width:
+                  type: integer
+                  minimum: 200
+                  maximum: 3840
+                  default: 1280
+                height:
+                  type: integer
+                  minimum: 200
+                  maximum: 10000
+                  default: 800
+                full_page:
+                  type: boolean
+                  default: false
+                format:
+                  type: string
+                  enum:
+                  - A4
+                  - A3
+                  - A5
+                  - Letter
+                  - Legal
+                  - Tabloid
+                  default: A4
+                quality:
+                  type: integer
+                  minimum: 1
+                  maximum: 100
+                  default: 80
+                scale:
+                  type: number
+                  minimum: 0.1
+                  maximum: 2
+                  default: 1
+                dark:
+                  type: boolean
+                  default: false
+                wait:
+                  type: integer
+                  minimum: 0
+                  maximum: 10000
+                  default: 0
+                wait_until:
+                  type: string
+                  enum:
+                  - load
+                  - domcontentloaded
+                  - networkidle
+                block_ads:
+                  type: boolean
+                  default: true
+                hide_cookie_banners:
+                  type: boolean
+                  default: true
+                timeout:
+                  type: integer
+                  minimum: 3000
+                  maximum: 45000
+                  default: 30000
+                selector:
+                  type: string
+                  maxLength: 200
+                device:
+                  type: string
+                  maxLength: 40
+                user_agent:
+                  type: string
+                  maxLength: 300
+                actions:
+                  $ref: '#/components/schemas/Actions'
+                lang:
+                  type: string
+                  maxLength: 35
+                  default: en-US
+                timezone:
+                  type: string
+                  default: UTC
+                landscape:
+                  type: boolean
+                  default: false
+                margin:
+                  type: string
+                  maxLength: 30
+                  default: 10mm
+                print_background:
+                  type: boolean
+                  default: true
+                page_ranges:
+                  type: string
+                  maxLength: 50
+                header:
+                  type: string
+                  maxLength: 2048
+                footer:
+                  type: string
+                  maxLength: 2048
+                page_numbers:
+                  type: boolean
+                  default: false
+      x-pagesnap-quota:
+        units: 0
+        paidSeparately: true
+      responses:
+        '200':
+          description: Rendered image or PDF.
+          content:
+            image/png:
+              schema:
+                type: string
+                format: binary
+            image/jpeg:
+              schema:
+                type: string
+                format: binary
+            image/webp:
+              schema:
+                type: string
+                format: binary
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '402':
+          description: x402 v2 exact payment required, invalid, or replayed. Decode PAYMENT-REQUIRED, sign the selected Base USDC requirement, and retry the request unchanged with PAYMENT-SIGNATURE.
+          headers:
+            PAYMENT-REQUIRED:
+              required: true
+              schema:
+                type: string
+              description: Base64-encoded x402 payment requirements.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '408':
+          $ref: '#/components/responses/Timeout'
+        '413':
+          $ref: '#/components/responses/TooLarge'
+        '422':
+          $ref: '#/components/responses/Unprocessable'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '502':
+          $ref: '#/components/responses/UpstreamFailure'
+        '503':
+          $ref: '#/components/responses/Unavailable'
+      x-payment-info:
+        protocol: x402
+        version: 2
+        scheme: exact
+        network: eip155:8453
+        asset: USDC
+        price:
+          mode: fixed
+          currency: USD
+          amount: '0.005'
+components:
+  schemas:
+    Actions:
+      type: array
+      maxItems: 10
+      items:
+        oneOf:
+        - type: object
+          additionalProperties: false
+          required:
+          - type
+          - selector
+          properties:
+            type:
+              enum:
+              - click
+              - hover
+              - hide
+              - remove
+            selector:
+              type: string
+              minLength: 1
+              maxLength: 1000
+        - type: object
+          additionalProperties: false
+          required:
+          - type
+          - selector
+          - value
+          properties:
+            type:
+              const: fill
+            selector:
+              type: string
+              minLength: 1
+              maxLength: 1000
+            value:
+              type: string
+              maxLength: 100000
+        - type: object
+          additionalProperties: false
+          required:
+          - type
+          - selector
+          - value
+          properties:
+            type:
+              const: select
+            selector:
+              type: string
+              minLength: 1
+              maxLength: 1000
+            value:
+              oneOf:
+              - type: string
+                maxLength: 10000
+              - type: array
+                minItems: 1
+                maxItems: 100
+                items:
+                  type: string
+                  maxLength: 10000
+        - type: object
+          additionalProperties: false
+          required:
+          - type
+          - key
+          properties:
+            type:
+              const: press
+            selector:
+              type: string
+              minLength: 1
+              maxLength: 1000
+            key:
+              type: string
+              minLength: 1
+              maxLength: 100
+        - type: object
+          additionalProperties: false
+          required:
+          - type
+          oneOf:
+          - required:
+            - selector
+          - anyOf:
+            - required:
+              - x
+            - required:
+              - y
+          properties:
+            type:
+              const: scroll
+            selector:
+              type: string
+              minLength: 1
+              maxLength: 1000
+            x:
+              type: number
+              minimum: -100000
+              maximum: 100000
+            y:
+              type: number
+              minimum: -100000
+              maximum: 100000
+        - type: object
+          additionalProperties: false
+          required:
+          - type
+          - ms
+          properties:
+            type:
+              const: wait
+            ms:
+              type: integer
+              minimum: 0
+              maximum: 5000
+        - type: object
+          additionalProperties: false
+          required:
+          - type
+          - selector
+          properties:
+            type:
+              const: wait_for
+            selector:
+              type: string
+              minLength: 1
+              maxLength: 1000
+            state:
+              type: string
+              enum:
+              - attached
+              - detached
+              - visible
+              - hidden
+              default: visible
+        - type: object
+          additionalProperties: false
+          required:
+          - type
+          - width
+          - height
+          properties:
+            type:
+              const: set_viewport
+            width:
+              type: integer
+              minimum: 200
+              maximum: 3840
+            height:
+              type: integer
+              minimum: 200
+              maximum: 10000
+    CrawlPage:
+      type: object
+      additionalProperties: true
+      properties:
+        url:
+          type: string
+        finalUrl:
+          type: string
+        title:
+          type: string
+        depth:
+          type: integer
+        markdown:
+          type: string
+    ReadResult:
+      type: object
+      required:
+      - ok
+      additionalProperties: true
+      properties:
+        ok:
+          const: true
+        title:
+          type: string
+        finalUrl:
+          type: string
+          format: uri
+        markdown:
+          type: string
+        text:
+          type: string
+        html:
+          type: string
+        tokensEstimate:
+          type: integer
+          minimum: 0
+        rawBytes:
+          type: integer
+          minimum: 0
+          description: Fetched or rendered source bytes before extraction.
+        pdfPages:
+          type: integer
+          minimum: 1
+        pdfPagesProcessed:
+          type: integer
+          minimum: 0
+        noTextLayer:
+          type: boolean
+          description: True when a PDF contains no extractable text layer; Pagesnap does not pretend OCR occurred.
+        truncated:
+          type: boolean
+        links:
+          type: array
+          items:
+            type: object
+        images:
+          type: array
+          items:
+            type: object
+    ExtractResult:
+      type: object
+      required:
+      - ok
+      additionalProperties: true
+      properties:
+        ok:
+          const: true
+        jsonLd:
+          type: array
+          items: {}
+        microdata:
+          type: array
+          items: {}
+        rdfa:
+          type: array
+          items: {}
+        products:
+          type: array
+          items: {}
+        articles:
+          type: array
+          items: {}
+        breadcrumbs:
+          type: array
+          items: {}
+        faqs:
+          type: array
+          items: {}
+    CrawlResult:
+      type: object
+      required:
+      - pages
+      - stats
+      - robots
+      properties:
+        pages:
+          type: array
+          items:
+            $ref: '#/components/schemas/CrawlPage'
+        stats:
+          type: object
+          additionalProperties: true
+        robots:
+          type: object
+          additionalProperties: true
+    Error:
+      type: object
+      required:
+      - error
+      properties:
+        error:
+          type: object
+          required:
+          - code
+          - message
+          properties:
+            code:
+              type: string
+              enum:
+              - MISSING_URL
+              - INVALID_URL
+              - INVALID_ACTIONS
+              - MISSING_HTML
+              - MISSING_URLS
+              - BATCH_TOO_LARGE
+              - BAD_REQUEST
+              - INVALID_KEY
+              - KEY_REQUIRED
+              - KEY_DISABLED
+              - BLOCKED_URL
+              - TIMEOUT
+              - ACTION_FAILED
+              - TOO_LARGE
+              - RESULT_TOO_LARGE
+              - UNSUPPORTED
+              - UNSUPPORTED_MEDIA
+              - RATE_LIMITED
+              - TARGET_BUSY
+              - ANON_GLOBAL_QUOTA
+              - DAILY_QUOTA
+              - MONTHLY_QUOTA
+              - CONCURRENCY
+              - KEY_LIMIT
+              - KEY_SPIKE_LIMIT
+              - BUSY
+              - ENGINE_UNAVAILABLE
+              - NAV_FAILED
+              - HTTP_ERROR
+              - BROWSER_ERROR
+              - JOB_QUEUE_FULL
+              - JOB_NOT_FOUND
+              - JOB_NOT_READY
+              - RESULT_UNAVAILABLE
+              - INVALID_MODE
+              - MONITOR_LIMIT
+              - MONITOR_NOT_FOUND
+              - MONITOR_RUNNING
+              - MONITOR_PAUSED
+              - PLAN_INTERVAL
+              - SNAPSHOT_TOO_LARGE
+              - INVALID_INTERVAL
+              - INVALID_THRESHOLD
+              - INVALID_SELECTOR
+              - INVALID_PLAN
+              - CHECKOUT_CONTEXT_REQUIRED
+              - CHECKOUT_KEY_LIMIT
+              - CHECKOUT_IP_LIMIT
+              - BILLING_UNAVAILABLE
+              - INVOICE_UNAVAILABLE
+              - ORDER_NOT_FOUND
+              - INVOICE_NOT_FOUND
+              - PAYMENT_REPLAY
+              - FACILITATOR_UNAVAILABLE
+              - SETTLEMENT_UNVERIFIED
+              - TICKET_LIMIT
+              - NOT_FOUND
+              - INTERNAL
+            message:
+              type: string
+            reason:
+              type: string
+              enum:
+              - bot_protection
+              - interactive_challenge
+              - ip_policy_or_geo_block
+            upstream_status:
+              type: integer
+              minimum: 100
+              maximum: 599
+    MetaResult:
+      type: object
+      required:
+      - ok
+      additionalProperties: true
+      properties:
+        ok:
+          const: true
+        title:
+          type: string
+        description:
+          type: string
+        image:
+          type:
+          - string
+          - 'null'
+        favicon:
+          type:
+          - string
+          - 'null'
+        siteName:
+          type:
+          - string
+          - 'null'
+        canonical:
+          type:
+          - string
+          - 'null'
+        finalUrl:
+          type: string
+        status:
+          type: integer
+        author:
+          type:
+          - string
+          - 'null'
+        publishedTime:
+          type:
+          - string
+          - 'null'
+        twitter:
+          type: object
+  responses:
+    Timeout:
+      description: Target or action timed out.
+      headers:
+        Retry-After:
+          schema:
+            type: integer
+            minimum: 0
+          description: Seconds to wait when supplied.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    RateLimited:
+      description: Caller, quota, concurrency, or target-host limit reached.
+      headers:
+        Retry-After:
+          schema:
+            type: integer
+            minimum: 0
+          description: Seconds to wait when supplied.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    BadRequest:
+      description: Invalid or missing input.
+      headers:
+        Retry-After:
+          schema:
+            type: integer
+            minimum: 0
+          description: Seconds to wait when supplied.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    Forbidden:
+      description: Disabled key, plan restriction, or blocked target.
+      headers:
+        Retry-After:
+          schema:
+            type: integer
+            minimum: 0
+          description: Seconds to wait when supplied.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    UpstreamFailure:
+      description: Target or rendering engine failed.
+      headers:
+        Retry-After:
+          schema:
+            type: integer
+            minimum: 0
+          description: Seconds to wait when supplied.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    Unauthorized:
+      description: Missing or invalid credentials.
+      headers:
+        Retry-After:
+          schema:
+            type: integer
+            minimum: 0
+          description: Seconds to wait when supplied.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    Unprocessable:
+      description: Input is understood but unsupported or cannot be processed.
+      headers:
+        Retry-After:
+          schema:
+            type: integer
+            minimum: 0
+          description: Seconds to wait when supplied.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    TooLarge:
+      description: Request or stored result is too large.
+      headers:
+        Retry-After:
+          schema:
+            type: integer
+            minimum: 0
+          description: Seconds to wait when supplied.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    Unavailable:
+      description: Capacity, facilitator, billing, or engine temporarily unavailable.
+      headers:
+        Retry-After:
+          schema:
+            type: integer
+            minimum: 0
+          description: Seconds to wait when supplied.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+  securitySchemes:
+    bearer:
+      type: http
+      scheme: bearer
+      bearerFormat: ps_live_…
+      description: Pagesnap API key.
+    apiHeader:
+      type: apiKey
+      in: header
+      name: X-API-Key
+    apiQuery:
+      type: apiKey
+      in: query
+      name: key
+      description: Compatibility only; headers avoid key leakage in URLs.
+    x402:
+      type: apiKey
+      in: header
+      name: PAYMENT-SIGNATURE
+      description: x402 v2 exact EIP-3009 USDC authorization on Base; X-PAYMENT is a legacy alias.
+x-pagesnap-limits:
+  quotaUnits:
+    read: 1
+    screenshot: 1
+    pdf: 1
+    meta: 1
+    extract: 1
+    render: 1
+    diff: 2
+    batch: one per URL
+    crawl: one per reserved page
+    llmsTxt: one per reserved page
+    monitorCheck: 1
+  planCrawlCaps:
+    anon: 5
+    free: 25
+    starter: 50
+    pro: 200
+    scale: 200
+  synchronousCrawlPages: 25
+  target:
+    perMin: 60
+    concurrency: 3
+  monitorCaps:
+    free: 2
+    starter: 10
+    pro: 50
+    scale: 200
+  jobRetentionHours: 24
+  temporaryLinkHours: 1

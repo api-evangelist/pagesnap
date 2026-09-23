@@ -1,0 +1,209 @@
+openapi: 3.2.0
+info:
+  title: Pagesnap Status API
+  version: 1.1.0
+  description: Turn public HTTP(S) URLs into Markdown, structured data, images, PDFs, crawls, diffs, and monitors. Anonymous, API-key, agent-protocol, and x402 payment surfaces are described from the same runtime contract.
+  contact:
+    url: https://pagesnap.142-93-197-141.sslip.io/support
+  license:
+    name: Service terms
+    url: https://pagesnap.142-93-197-141.sslip.io/terms
+  x-guidance: For keyless USDC requests, call an /x402/v1 route once without payment, decode PAYMENT-REQUIRED, then retry the same request with PAYMENT-SIGNATURE.
+servers:
+- url: https://pagesnap.142-93-197-141.sslip.io
+security:
+- {}
+- bearer: []
+- apiHeader: []
+- apiQuery: []
+tags:
+- name: Status
+  description: Public health and stats
+paths:
+  /v1/stats:
+    get:
+      operationId: getPublicStats
+      summary: Get aggregate public service stats
+      tags:
+      - Status
+      security: []
+      responses:
+        '200':
+          description: Live aggregate counters.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - ok
+                - generated_at
+                additionalProperties: true
+                properties:
+                  ok:
+                    const: true
+                  generated_at:
+                    type: string
+                    format: date-time
+                  uptime:
+                    type: string
+                  inflight:
+                    type: integer
+  /v1/status:
+    get:
+      operationId: getPublicStatus
+      summary: Get public uptime and latency status
+      tags:
+      - Status
+      security: []
+      responses:
+        '200':
+          description: 60-second cached operational snapshot.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Status'
+  /healthz:
+    get:
+      operationId: healthcheck
+      summary: Get detailed process and engine health
+      tags:
+      - Status
+      security: []
+      responses:
+        '200':
+          description: Healthy.
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '503':
+          description: Engine unhealthy.
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+components:
+  schemas:
+    StatusRatio:
+      type: object
+      required:
+      - percent
+      - total
+      - ok
+      properties:
+        percent:
+          type:
+          - number
+          - 'null'
+        total:
+          type: integer
+        ok:
+          type: integer
+    Status:
+      type: object
+      required:
+      - ok
+      - generated_at
+      - status
+      - uptime
+      - daily
+      - latency
+      - queues
+      properties:
+        ok:
+          type: boolean
+        generated_at:
+          type: string
+          format: date-time
+        status:
+          type: string
+          enum:
+          - operational
+          - degraded
+        uptime:
+          type: object
+          properties:
+            today:
+              $ref: '#/components/schemas/StatusRatio'
+            last_7_days:
+              $ref: '#/components/schemas/StatusRatio'
+            last_30_days:
+              $ref: '#/components/schemas/StatusRatio'
+            last_90_days:
+              $ref: '#/components/schemas/StatusRatio'
+        daily:
+          type: array
+          items:
+            type: object
+            properties:
+              day:
+                type: string
+                format: date
+              ok:
+                type: integer
+              total:
+                type: integer
+              percent:
+                type:
+                - number
+                - 'null'
+        latency:
+          type: object
+        queues:
+          type: object
+        latest_incident:
+          type:
+          - object
+          - 'null'
+  securitySchemes:
+    bearer:
+      type: http
+      scheme: bearer
+      bearerFormat: ps_live_…
+      description: Pagesnap API key.
+    apiHeader:
+      type: apiKey
+      in: header
+      name: X-API-Key
+    apiQuery:
+      type: apiKey
+      in: query
+      name: key
+      description: Compatibility only; headers avoid key leakage in URLs.
+    x402:
+      type: apiKey
+      in: header
+      name: PAYMENT-SIGNATURE
+      description: x402 v2 exact EIP-3009 USDC authorization on Base; X-PAYMENT is a legacy alias.
+x-pagesnap-limits:
+  quotaUnits:
+    read: 1
+    screenshot: 1
+    pdf: 1
+    meta: 1
+    extract: 1
+    render: 1
+    diff: 2
+    batch: one per URL
+    crawl: one per reserved page
+    llmsTxt: one per reserved page
+    monitorCheck: 1
+  planCrawlCaps:
+    anon: 5
+    free: 25
+    starter: 50
+    pro: 200
+    scale: 200
+  synchronousCrawlPages: 25
+  target:
+    perMin: 60
+    concurrency: 3
+  monitorCaps:
+    free: 2
+    starter: 10
+    pro: 50
+    scale: 200
+  jobRetentionHours: 24
+  temporaryLinkHours: 1

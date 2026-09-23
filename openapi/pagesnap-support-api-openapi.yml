@@ -1,0 +1,332 @@
+openapi: 3.2.0
+info:
+  title: Pagesnap Support API
+  version: 1.1.0
+  description: Turn public HTTP(S) URLs into Markdown, structured data, images, PDFs, crawls, diffs, and monitors. Anonymous, API-key, agent-protocol, and x402 payment surfaces are described from the same runtime contract.
+  contact:
+    url: https://pagesnap.142-93-197-141.sslip.io/support
+  license:
+    name: Service terms
+    url: https://pagesnap.142-93-197-141.sslip.io/terms
+  x-guidance: For keyless USDC requests, call an /x402/v1 route once without payment, decode PAYMENT-REQUIRED, then retry the same request with PAYMENT-SIGNATURE.
+servers:
+- url: https://pagesnap.142-93-197-141.sslip.io
+security:
+- {}
+- bearer: []
+- apiHeader: []
+- apiQuery: []
+tags:
+- name: Support
+  description: Capability-based support tickets
+paths:
+  /v1/support:
+    post:
+      operationId: createSupportTicket
+      summary: Open an accountless support ticket
+      tags:
+      - Support
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SupportInput'
+      responses:
+        '201':
+          description: Ticket and unguessable capability URL.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SupportTicketResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+  /v1/support/{ticket_id}:
+    get:
+      operationId: getSupportTicket
+      summary: Get a support ticket by capability ID
+      tags:
+      - Support
+      security: []
+      parameters:
+      - name: ticket_id
+        in: path
+        required: true
+        schema:
+          type: string
+          pattern: ^t_[A-Za-z0-9_-]{32}$
+      responses:
+        '200':
+          description: Ticket and messages.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SupportTicketResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /v1/support/{ticket_id}/messages:
+    post:
+      operationId: addSupportTicketMessage
+      summary: Add a requester message
+      tags:
+      - Support
+      security: []
+      parameters:
+      - name: ticket_id
+        in: path
+        required: true
+        schema:
+          type: string
+          pattern: ^t_[A-Za-z0-9_-]{32}$
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required:
+              - message
+              properties:
+                message:
+                  type: string
+                  minLength: 1
+                  maxLength: 5000
+      responses:
+        '201':
+          description: Updated ticket.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SupportTicketResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+components:
+  schemas:
+    SupportTicketResponse:
+      type: object
+      required:
+      - ok
+      - ticket
+      additionalProperties: true
+      properties:
+        ok:
+          const: true
+        ticket_url:
+          type: string
+        ticket:
+          type: object
+          additionalProperties: true
+        messages:
+          type: array
+          items:
+            type: object
+    SupportInput:
+      type: object
+      additionalProperties: false
+      required:
+      - subject
+      - message
+      properties:
+        subject:
+          type: string
+          minLength: 1
+          maxLength: 160
+        category:
+          type: string
+          enum:
+          - general
+          - technical
+          - billing
+          - takedown
+          - oss
+          default: general
+        message:
+          type: string
+          minLength: 1
+          maxLength: 5000
+        contact:
+          type: string
+          maxLength: 200
+        key_prefix:
+          type: string
+          maxLength: 16
+          description: Never send a complete API key.
+    Error:
+      type: object
+      required:
+      - error
+      properties:
+        error:
+          type: object
+          required:
+          - code
+          - message
+          properties:
+            code:
+              type: string
+              enum:
+              - MISSING_URL
+              - INVALID_URL
+              - INVALID_ACTIONS
+              - MISSING_HTML
+              - MISSING_URLS
+              - BATCH_TOO_LARGE
+              - BAD_REQUEST
+              - INVALID_KEY
+              - KEY_REQUIRED
+              - KEY_DISABLED
+              - BLOCKED_URL
+              - TIMEOUT
+              - ACTION_FAILED
+              - TOO_LARGE
+              - RESULT_TOO_LARGE
+              - UNSUPPORTED
+              - UNSUPPORTED_MEDIA
+              - RATE_LIMITED
+              - TARGET_BUSY
+              - ANON_GLOBAL_QUOTA
+              - DAILY_QUOTA
+              - MONTHLY_QUOTA
+              - CONCURRENCY
+              - KEY_LIMIT
+              - KEY_SPIKE_LIMIT
+              - BUSY
+              - ENGINE_UNAVAILABLE
+              - NAV_FAILED
+              - HTTP_ERROR
+              - BROWSER_ERROR
+              - JOB_QUEUE_FULL
+              - JOB_NOT_FOUND
+              - JOB_NOT_READY
+              - RESULT_UNAVAILABLE
+              - INVALID_MODE
+              - MONITOR_LIMIT
+              - MONITOR_NOT_FOUND
+              - MONITOR_RUNNING
+              - MONITOR_PAUSED
+              - PLAN_INTERVAL
+              - SNAPSHOT_TOO_LARGE
+              - INVALID_INTERVAL
+              - INVALID_THRESHOLD
+              - INVALID_SELECTOR
+              - INVALID_PLAN
+              - CHECKOUT_CONTEXT_REQUIRED
+              - CHECKOUT_KEY_LIMIT
+              - CHECKOUT_IP_LIMIT
+              - BILLING_UNAVAILABLE
+              - INVOICE_UNAVAILABLE
+              - ORDER_NOT_FOUND
+              - INVOICE_NOT_FOUND
+              - PAYMENT_REPLAY
+              - FACILITATOR_UNAVAILABLE
+              - SETTLEMENT_UNVERIFIED
+              - TICKET_LIMIT
+              - NOT_FOUND
+              - INTERNAL
+            message:
+              type: string
+            reason:
+              type: string
+              enum:
+              - bot_protection
+              - interactive_challenge
+              - ip_policy_or_geo_block
+            upstream_status:
+              type: integer
+              minimum: 100
+              maximum: 599
+  responses:
+    NotFound:
+      description: Resource not found or expired.
+      headers:
+        Retry-After:
+          schema:
+            type: integer
+            minimum: 0
+          description: Seconds to wait when supplied.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    RateLimited:
+      description: Caller, quota, concurrency, or target-host limit reached.
+      headers:
+        Retry-After:
+          schema:
+            type: integer
+            minimum: 0
+          description: Seconds to wait when supplied.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    BadRequest:
+      description: Invalid or missing input.
+      headers:
+        Retry-After:
+          schema:
+            type: integer
+            minimum: 0
+          description: Seconds to wait when supplied.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+  securitySchemes:
+    bearer:
+      type: http
+      scheme: bearer
+      bearerFormat: ps_live_…
+      description: Pagesnap API key.
+    apiHeader:
+      type: apiKey
+      in: header
+      name: X-API-Key
+    apiQuery:
+      type: apiKey
+      in: query
+      name: key
+      description: Compatibility only; headers avoid key leakage in URLs.
+    x402:
+      type: apiKey
+      in: header
+      name: PAYMENT-SIGNATURE
+      description: x402 v2 exact EIP-3009 USDC authorization on Base; X-PAYMENT is a legacy alias.
+x-pagesnap-limits:
+  quotaUnits:
+    read: 1
+    screenshot: 1
+    pdf: 1
+    meta: 1
+    extract: 1
+    render: 1
+    diff: 2
+    batch: one per URL
+    crawl: one per reserved page
+    llmsTxt: one per reserved page
+    monitorCheck: 1
+  planCrawlCaps:
+    anon: 5
+    free: 25
+    starter: 50
+    pro: 200
+    scale: 200
+  synchronousCrawlPages: 25
+  target:
+    perMin: 60
+    concurrency: 3
+  monitorCaps:
+    free: 2
+    starter: 10
+    pro: 50
+    scale: 200
+  jobRetentionHours: 24
+  temporaryLinkHours: 1

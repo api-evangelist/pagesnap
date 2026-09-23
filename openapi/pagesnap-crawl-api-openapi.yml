@@ -1,0 +1,664 @@
+openapi: 3.2.0
+info:
+  title: Pagesnap Crawl API
+  version: 1.1.0
+  description: Turn public HTTP(S) URLs into Markdown, structured data, images, PDFs, crawls, diffs, and monitors. Anonymous, API-key, agent-protocol, and x402 payment surfaces are described from the same runtime contract.
+  contact:
+    url: https://pagesnap.142-93-197-141.sslip.io/support
+  license:
+    name: Service terms
+    url: https://pagesnap.142-93-197-141.sslip.io/terms
+  x-guidance: For keyless USDC requests, call an /x402/v1 route once without payment, decode PAYMENT-REQUIRED, then retry the same request with PAYMENT-SIGNATURE.
+servers:
+- url: https://pagesnap.142-93-197-141.sslip.io
+security:
+- {}
+- bearer: []
+- apiHeader: []
+- apiQuery: []
+tags:
+- name: Crawl
+  description: Site crawls and asynchronous jobs
+paths:
+  /v1/crawl:
+    post:
+      operationId: crawlSite
+      summary: Crawl a public site
+      tags:
+      - Crawl
+      security:
+      - {}
+      - bearer: []
+      - apiHeader: []
+      - apiQuery: []
+      requestBody:
+        required: true
+        description: 'Crawl request. Plan caps: anonymous 5, free 25, starter 50, pro 200, scale 200.'
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required:
+              - url
+              properties:
+                url:
+                  type: string
+                  format: uri
+                  pattern: ^https?://
+                  maxLength: 4096
+                limit:
+                  type: integer
+                  minimum: 1
+                  maximum: 200
+                  default: 20
+                max_depth:
+                  type: integer
+                  minimum: 0
+                  maximum: 20
+                  default: 3
+                same_origin:
+                  type: boolean
+                  default: true
+                include:
+                  oneOf:
+                  - type: string
+                    maxLength: 500
+                  - type: array
+                    minItems: 1
+                    maxItems: 50
+                    items:
+                      type: string
+                      maxLength: 500
+                exclude:
+                  oneOf:
+                  - type: string
+                    maxLength: 500
+                  - type: array
+                    minItems: 1
+                    maxItems: 50
+                    items:
+                      type: string
+                      maxLength: 500
+                use_sitemap:
+                  type: boolean
+                  default: true
+                format:
+                  type: string
+                  enum:
+                  - markdown
+                  - json
+                  default: markdown
+      x-pagesnap-quota:
+        units: one-per-reserved-page
+        cacheHitsCharged: true
+      responses:
+        '200':
+          description: Synchronous crawl (effective limit at most 25).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CrawlResult'
+        '202':
+          description: Asynchronous crawl accepted.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CrawlAccepted'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '408':
+          $ref: '#/components/responses/Timeout'
+        '413':
+          $ref: '#/components/responses/TooLarge'
+        '422':
+          $ref: '#/components/responses/Unprocessable'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '502':
+          $ref: '#/components/responses/UpstreamFailure'
+        '503':
+          $ref: '#/components/responses/Unavailable'
+  /v1/llms-txt:
+    post:
+      operationId: generateLlmsTxt
+      summary: Generate llms.txt and llms-full.txt
+      tags:
+      - Crawl
+      security:
+      - {}
+      - bearer: []
+      - apiHeader: []
+      - apiQuery: []
+      requestBody:
+        required: true
+        description: Generate llms.txt files using crawl plan caps, robots.txt, sitemaps, filters, and per-host delays.
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required:
+              - url
+              properties:
+                url:
+                  type: string
+                  format: uri
+                  pattern: ^https?://
+                  maxLength: 4096
+                limit:
+                  type: integer
+                  minimum: 1
+                  maximum: 200
+                  default: 20
+                include:
+                  oneOf:
+                  - type: string
+                    maxLength: 500
+                  - type: array
+                    minItems: 1
+                    maxItems: 50
+                    items:
+                      type: string
+                      maxLength: 500
+                exclude:
+                  oneOf:
+                  - type: string
+                    maxLength: 500
+                  - type: array
+                    minItems: 1
+                    maxItems: 50
+                    items:
+                      type: string
+                      maxLength: 500
+                format:
+                  type: string
+                  enum:
+                  - json
+                  - txt
+                  default: json
+      x-pagesnap-quota:
+        units: one-per-reserved-page
+        cacheHitsCharged: true
+      responses:
+        '200':
+          description: Generated files. format=txt returns only llms.txt.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LlmsTxtResult'
+            text/plain:
+              schema:
+                type: string
+        '202':
+          description: Asynchronous generation accepted.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CrawlAccepted'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '408':
+          $ref: '#/components/responses/Timeout'
+        '413':
+          $ref: '#/components/responses/TooLarge'
+        '422':
+          $ref: '#/components/responses/Unprocessable'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '502':
+          $ref: '#/components/responses/UpstreamFailure'
+        '503':
+          $ref: '#/components/responses/Unavailable'
+  /v1/jobs/{job_id}:
+    get:
+      operationId: getCrawlJob
+      summary: Poll a crawl job
+      tags:
+      - Crawl
+      security: []
+      parameters:
+      - name: job_id
+        in: path
+        required: true
+        schema:
+          type: string
+          pattern: ^crawl_[A-Za-z0-9_-]{20,40}$
+        description: Unguessable crawl job capability ID.
+      responses:
+        '200':
+          description: Job state and progress.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CrawlJob'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /v1/jobs/{job_id}/result:
+    get:
+      operationId: getCrawlJobResult
+      summary: Download a completed crawl or llms.txt generation
+      tags:
+      - Crawl
+      security: []
+      parameters:
+      - name: job_id
+        in: path
+        required: true
+        schema:
+          type: string
+          pattern: ^crawl_[A-Za-z0-9_-]{20,40}$
+      - name: format
+        in: query
+        required: false
+        schema:
+          type: string
+          enum:
+          - ndjson
+          - txt
+          - full
+        description: Crawl supports ndjson; llms.txt jobs support txt or full.
+      responses:
+        '200':
+          description: Stored result (retained 24 hours, maximum 32 MiB).
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - $ref: '#/components/schemas/CrawlResult'
+                - $ref: '#/components/schemas/LlmsTxtResult'
+            application/x-ndjson:
+              schema:
+                type: string
+            text/plain:
+              schema:
+                type: string
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/Internal'
+components:
+  responses:
+    Timeout:
+      description: Target or action timed out.
+      headers:
+        Retry-After:
+          schema:
+            type: integer
+            minimum: 0
+          description: Seconds to wait when supplied.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    NotFound:
+      description: Resource not found or expired.
+      headers:
+        Retry-After:
+          schema:
+            type: integer
+            minimum: 0
+          description: Seconds to wait when supplied.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    RateLimited:
+      description: Caller, quota, concurrency, or target-host limit reached.
+      headers:
+        Retry-After:
+          schema:
+            type: integer
+            minimum: 0
+          description: Seconds to wait when supplied.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    BadRequest:
+      description: Invalid or missing input.
+      headers:
+        Retry-After:
+          schema:
+            type: integer
+            minimum: 0
+          description: Seconds to wait when supplied.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    Forbidden:
+      description: Disabled key, plan restriction, or blocked target.
+      headers:
+        Retry-After:
+          schema:
+            type: integer
+            minimum: 0
+          description: Seconds to wait when supplied.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    UpstreamFailure:
+      description: Target or rendering engine failed.
+      headers:
+        Retry-After:
+          schema:
+            type: integer
+            minimum: 0
+          description: Seconds to wait when supplied.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    Conflict:
+      description: Current resource state conflicts with the request.
+      headers:
+        Retry-After:
+          schema:
+            type: integer
+            minimum: 0
+          description: Seconds to wait when supplied.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    Unauthorized:
+      description: Missing or invalid credentials.
+      headers:
+        Retry-After:
+          schema:
+            type: integer
+            minimum: 0
+          description: Seconds to wait when supplied.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    Unavailable:
+      description: Capacity, facilitator, billing, or engine temporarily unavailable.
+      headers:
+        Retry-After:
+          schema:
+            type: integer
+            minimum: 0
+          description: Seconds to wait when supplied.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    Unprocessable:
+      description: Input is understood but unsupported or cannot be processed.
+      headers:
+        Retry-After:
+          schema:
+            type: integer
+            minimum: 0
+          description: Seconds to wait when supplied.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    TooLarge:
+      description: Request or stored result is too large.
+      headers:
+        Retry-After:
+          schema:
+            type: integer
+            minimum: 0
+          description: Seconds to wait when supplied.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    Internal:
+      description: Internal failure.
+      headers:
+        Retry-After:
+          schema:
+            type: integer
+            minimum: 0
+          description: Seconds to wait when supplied.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+  schemas:
+    CrawlPage:
+      type: object
+      additionalProperties: true
+      properties:
+        url:
+          type: string
+        finalUrl:
+          type: string
+        title:
+          type: string
+        depth:
+          type: integer
+        markdown:
+          type: string
+    Error:
+      type: object
+      required:
+      - error
+      properties:
+        error:
+          type: object
+          required:
+          - code
+          - message
+          properties:
+            code:
+              type: string
+              enum:
+              - MISSING_URL
+              - INVALID_URL
+              - INVALID_ACTIONS
+              - MISSING_HTML
+              - MISSING_URLS
+              - BATCH_TOO_LARGE
+              - BAD_REQUEST
+              - INVALID_KEY
+              - KEY_REQUIRED
+              - KEY_DISABLED
+              - BLOCKED_URL
+              - TIMEOUT
+              - ACTION_FAILED
+              - TOO_LARGE
+              - RESULT_TOO_LARGE
+              - UNSUPPORTED
+              - UNSUPPORTED_MEDIA
+              - RATE_LIMITED
+              - TARGET_BUSY
+              - ANON_GLOBAL_QUOTA
+              - DAILY_QUOTA
+              - MONTHLY_QUOTA
+              - CONCURRENCY
+              - KEY_LIMIT
+              - KEY_SPIKE_LIMIT
+              - BUSY
+              - ENGINE_UNAVAILABLE
+              - NAV_FAILED
+              - HTTP_ERROR
+              - BROWSER_ERROR
+              - JOB_QUEUE_FULL
+              - JOB_NOT_FOUND
+              - JOB_NOT_READY
+              - RESULT_UNAVAILABLE
+              - INVALID_MODE
+              - MONITOR_LIMIT
+              - MONITOR_NOT_FOUND
+              - MONITOR_RUNNING
+              - MONITOR_PAUSED
+              - PLAN_INTERVAL
+              - SNAPSHOT_TOO_LARGE
+              - INVALID_INTERVAL
+              - INVALID_THRESHOLD
+              - INVALID_SELECTOR
+              - INVALID_PLAN
+              - CHECKOUT_CONTEXT_REQUIRED
+              - CHECKOUT_KEY_LIMIT
+              - CHECKOUT_IP_LIMIT
+              - BILLING_UNAVAILABLE
+              - INVOICE_UNAVAILABLE
+              - ORDER_NOT_FOUND
+              - INVOICE_NOT_FOUND
+              - PAYMENT_REPLAY
+              - FACILITATOR_UNAVAILABLE
+              - SETTLEMENT_UNVERIFIED
+              - TICKET_LIMIT
+              - NOT_FOUND
+              - INTERNAL
+            message:
+              type: string
+            reason:
+              type: string
+              enum:
+              - bot_protection
+              - interactive_challenge
+              - ip_policy_or_geo_block
+            upstream_status:
+              type: integer
+              minimum: 100
+              maximum: 599
+    CrawlAccepted:
+      type: object
+      required:
+      - job_id
+      - status_url
+      properties:
+        job_id:
+          type: string
+        status_url:
+          type: string
+    CrawlResult:
+      type: object
+      required:
+      - pages
+      - stats
+      - robots
+      properties:
+        pages:
+          type: array
+          items:
+            $ref: '#/components/schemas/CrawlPage'
+        stats:
+          type: object
+          additionalProperties: true
+        robots:
+          type: object
+          additionalProperties: true
+    LlmsTxtResult:
+      type: object
+      required:
+      - llms_txt
+      - llms_full_txt
+      - pages
+      - stats
+      - robots
+      properties:
+        llms_txt:
+          type: string
+        llms_full_txt:
+          type: string
+        pages:
+          type: array
+          items:
+            $ref: '#/components/schemas/CrawlPage'
+        stats:
+          type: object
+          additionalProperties: true
+        robots:
+          type: object
+          additionalProperties: true
+    CrawlJob:
+      type: object
+      required:
+      - status
+      - progress
+      - result_url
+      properties:
+        status:
+          type: string
+          enum:
+          - queued
+          - running
+          - done
+          - failed
+        progress:
+          type:
+          - object
+          - 'null'
+          additionalProperties: true
+        result_url:
+          type:
+          - string
+          - 'null'
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+            message:
+              type: string
+  securitySchemes:
+    bearer:
+      type: http
+      scheme: bearer
+      bearerFormat: ps_live_…
+      description: Pagesnap API key.
+    apiHeader:
+      type: apiKey
+      in: header
+      name: X-API-Key
+    apiQuery:
+      type: apiKey
+      in: query
+      name: key
+      description: Compatibility only; headers avoid key leakage in URLs.
+    x402:
+      type: apiKey
+      in: header
+      name: PAYMENT-SIGNATURE
+      description: x402 v2 exact EIP-3009 USDC authorization on Base; X-PAYMENT is a legacy alias.
+x-pagesnap-limits:
+  quotaUnits:
+    read: 1
+    screenshot: 1
+    pdf: 1
+    meta: 1
+    extract: 1
+    render: 1
+    diff: 2
+    batch: one per URL
+    crawl: one per reserved page
+    llmsTxt: one per reserved page
+    monitorCheck: 1
+  planCrawlCaps:
+    anon: 5
+    free: 25
+    starter: 50
+    pro: 200
+    scale: 200
+  synchronousCrawlPages: 25
+  target:
+    perMin: 60
+    concurrency: 3
+  monitorCaps:
+    free: 2
+    starter: 10
+    pro: 50
+    scale: 200
+  jobRetentionHours: 24
+  temporaryLinkHours: 1

@@ -1,0 +1,542 @@
+openapi: 3.2.0
+info:
+  title: Pagesnap Diff API
+  version: 1.1.0
+  description: Turn public HTTP(S) URLs into Markdown, structured data, images, PDFs, crawls, diffs, and monitors. Anonymous, API-key, agent-protocol, and x402 payment surfaces are described from the same runtime contract.
+  contact:
+    url: https://pagesnap.142-93-197-141.sslip.io/support
+  license:
+    name: Service terms
+    url: https://pagesnap.142-93-197-141.sslip.io/terms
+  x-guidance: For keyless USDC requests, call an /x402/v1 route once without payment, decode PAYMENT-REQUIRED, then retry the same request with PAYMENT-SIGNATURE.
+servers:
+- url: https://pagesnap.142-93-197-141.sslip.io
+security:
+- {}
+- bearer: []
+- apiHeader: []
+- apiQuery: []
+tags:
+- name: Diff
+  description: Two-page comparison
+paths:
+  /v1/diff:
+    get:
+      operationId: diffUrls
+      summary: Compare two public pages
+      tags:
+      - Diff
+      security:
+      - {}
+      - bearer: []
+      - apiHeader: []
+      - apiQuery: []
+      parameters:
+      - name: url_a
+        in: query
+        required: true
+        schema:
+          type: string
+          format: uri
+          pattern: ^https?://
+          maxLength: 4096
+        description: Public HTTP(S) URL; a missing scheme is accepted by the core /v1 URL endpoints and interpreted as HTTPS.
+      - name: url_b
+        in: query
+        required: true
+        schema:
+          type: string
+          format: uri
+          pattern: ^https?://
+          maxLength: 4096
+        description: Public HTTP(S) URL; a missing scheme is accepted by the core /v1 URL endpoints and interpreted as HTTPS.
+      - name: mode
+        in: query
+        required: false
+        schema:
+          type: string
+          enum:
+          - visual
+          - text
+          default: visual
+        description: Comparison mode.
+      - name: width
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 200
+          maximum: 3840
+          default: 1280
+        description: Viewport width in CSS pixels.
+      - name: height
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 200
+          maximum: 10000
+          default: 800
+        description: Viewport height.
+      - name: full_page
+        in: query
+        required: false
+        schema:
+          type: boolean
+          default: false
+        description: Capture the full scrollable page.
+      - name: format
+        in: query
+        required: false
+        schema:
+          type: string
+          enum:
+          - png
+          - jpeg
+          - jpg
+          - webp
+          default: png
+        description: Image format; jpg aliases jpeg.
+      - name: quality
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 100
+          default: 80
+        description: JPEG/WebP quality.
+      - name: scale
+        in: query
+        required: false
+        schema:
+          type: number
+          minimum: 1
+          maximum: 3
+          default: 1
+        description: Device scale factor.
+      - name: dark
+        in: query
+        required: false
+        schema:
+          type: boolean
+          default: false
+        description: Emulate dark color scheme.
+      - name: wait
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 0
+          maximum: 10000
+          default: 0
+        description: Extra post-load wait in milliseconds.
+      - name: wait_until
+        in: query
+        required: false
+        schema:
+          type: string
+          enum:
+          - load
+          - domcontentloaded
+          - networkidle
+        description: Navigation completion event.
+      - name: block_ads
+        in: query
+        required: false
+        schema:
+          type: boolean
+          default: true
+        description: Block known ad/tracker requests.
+      - name: hide_cookie_banners
+        in: query
+        required: false
+        schema:
+          type: boolean
+          default: true
+        description: Hide common cookie banners.
+      - name: timeout
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 3000
+          maximum: 45000
+          default: 25000
+        description: Overall timeout in milliseconds.
+      - name: selector
+        in: query
+        required: false
+        schema:
+          type: string
+          maxLength: 200
+        description: CSS selector to clip.
+      - name: device
+        in: query
+        required: false
+        schema:
+          type: string
+          maxLength: 40
+        description: Playwright device name.
+      - name: user_agent
+        in: query
+        required: false
+        schema:
+          type: string
+          maxLength: 300
+        description: Custom user agent.
+      - name: actions
+        in: query
+        required: false
+        schema:
+          type: string
+          contentMediaType: application/json
+        description: JSON-encoded array of at most 10 pre-capture actions. Prefer a POST JSON body.
+      - name: lang
+        in: query
+        required: false
+        schema:
+          type: string
+          maxLength: 35
+          default: en-US
+          examples:
+          - en-US
+          - ja-JP
+        description: Safe BCP-47 language tag.
+      - name: timezone
+        in: query
+        required: false
+        schema:
+          type: string
+          default: UTC
+          examples:
+          - UTC
+          - America/New_York
+        description: UTC or an IANA time zone supported by the runtime.
+      x-pagesnap-quota:
+        units: 2
+        cacheHitsCharged: true
+      responses:
+        '200':
+          description: Visual or text comparison.
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - $ref: '#/components/schemas/VisualDiff'
+                - $ref: '#/components/schemas/TextDiff'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '408':
+          $ref: '#/components/responses/Timeout'
+        '413':
+          $ref: '#/components/responses/TooLarge'
+        '422':
+          $ref: '#/components/responses/Unprocessable'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '502':
+          $ref: '#/components/responses/UpstreamFailure'
+        '503':
+          $ref: '#/components/responses/Unavailable'
+components:
+  responses:
+    Timeout:
+      description: Target or action timed out.
+      headers:
+        Retry-After:
+          schema:
+            type: integer
+            minimum: 0
+          description: Seconds to wait when supplied.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    RateLimited:
+      description: Caller, quota, concurrency, or target-host limit reached.
+      headers:
+        Retry-After:
+          schema:
+            type: integer
+            minimum: 0
+          description: Seconds to wait when supplied.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    BadRequest:
+      description: Invalid or missing input.
+      headers:
+        Retry-After:
+          schema:
+            type: integer
+            minimum: 0
+          description: Seconds to wait when supplied.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    UpstreamFailure:
+      description: Target or rendering engine failed.
+      headers:
+        Retry-After:
+          schema:
+            type: integer
+            minimum: 0
+          description: Seconds to wait when supplied.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    Unauthorized:
+      description: Missing or invalid credentials.
+      headers:
+        Retry-After:
+          schema:
+            type: integer
+            minimum: 0
+          description: Seconds to wait when supplied.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    Unprocessable:
+      description: Input is understood but unsupported or cannot be processed.
+      headers:
+        Retry-After:
+          schema:
+            type: integer
+            minimum: 0
+          description: Seconds to wait when supplied.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    TooLarge:
+      description: Request or stored result is too large.
+      headers:
+        Retry-After:
+          schema:
+            type: integer
+            minimum: 0
+          description: Seconds to wait when supplied.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    Unavailable:
+      description: Capacity, facilitator, billing, or engine temporarily unavailable.
+      headers:
+        Retry-After:
+          schema:
+            type: integer
+            minimum: 0
+          description: Seconds to wait when supplied.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    Forbidden:
+      description: Disabled key, plan restriction, or blocked target.
+      headers:
+        Retry-After:
+          schema:
+            type: integer
+            minimum: 0
+          description: Seconds to wait when supplied.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+  schemas:
+    VisualDiff:
+      type: object
+      required:
+      - ok
+      - mode
+      - percent_changed
+      - bounding_boxes
+      - diff_image
+      - urls
+      properties:
+        ok:
+          const: true
+        mode:
+          const: visual
+        percent_changed:
+          type: number
+        bounding_boxes:
+          type: array
+          items:
+            type: object
+        diff_image:
+          type: string
+          format: uri
+        urls:
+          type: array
+          items:
+            type: string
+          minItems: 2
+          maxItems: 2
+    TextDiff:
+      type: object
+      required:
+      - ok
+      - mode
+      - percent_changed
+      - added
+      - removed
+      properties:
+        ok:
+          const: true
+        mode:
+          const: text
+        percent_changed:
+          type: number
+        added:
+          type: array
+          items:
+            type: string
+        removed:
+          type: array
+          items:
+            type: string
+    Error:
+      type: object
+      required:
+      - error
+      properties:
+        error:
+          type: object
+          required:
+          - code
+          - message
+          properties:
+            code:
+              type: string
+              enum:
+              - MISSING_URL
+              - INVALID_URL
+              - INVALID_ACTIONS
+              - MISSING_HTML
+              - MISSING_URLS
+              - BATCH_TOO_LARGE
+              - BAD_REQUEST
+              - INVALID_KEY
+              - KEY_REQUIRED
+              - KEY_DISABLED
+              - BLOCKED_URL
+              - TIMEOUT
+              - ACTION_FAILED
+              - TOO_LARGE
+              - RESULT_TOO_LARGE
+              - UNSUPPORTED
+              - UNSUPPORTED_MEDIA
+              - RATE_LIMITED
+              - TARGET_BUSY
+              - ANON_GLOBAL_QUOTA
+              - DAILY_QUOTA
+              - MONTHLY_QUOTA
+              - CONCURRENCY
+              - KEY_LIMIT
+              - KEY_SPIKE_LIMIT
+              - BUSY
+              - ENGINE_UNAVAILABLE
+              - NAV_FAILED
+              - HTTP_ERROR
+              - BROWSER_ERROR
+              - JOB_QUEUE_FULL
+              - JOB_NOT_FOUND
+              - JOB_NOT_READY
+              - RESULT_UNAVAILABLE
+              - INVALID_MODE
+              - MONITOR_LIMIT
+              - MONITOR_NOT_FOUND
+              - MONITOR_RUNNING
+              - MONITOR_PAUSED
+              - PLAN_INTERVAL
+              - SNAPSHOT_TOO_LARGE
+              - INVALID_INTERVAL
+              - INVALID_THRESHOLD
+              - INVALID_SELECTOR
+              - INVALID_PLAN
+              - CHECKOUT_CONTEXT_REQUIRED
+              - CHECKOUT_KEY_LIMIT
+              - CHECKOUT_IP_LIMIT
+              - BILLING_UNAVAILABLE
+              - INVOICE_UNAVAILABLE
+              - ORDER_NOT_FOUND
+              - INVOICE_NOT_FOUND
+              - PAYMENT_REPLAY
+              - FACILITATOR_UNAVAILABLE
+              - SETTLEMENT_UNVERIFIED
+              - TICKET_LIMIT
+              - NOT_FOUND
+              - INTERNAL
+            message:
+              type: string
+            reason:
+              type: string
+              enum:
+              - bot_protection
+              - interactive_challenge
+              - ip_policy_or_geo_block
+            upstream_status:
+              type: integer
+              minimum: 100
+              maximum: 599
+  securitySchemes:
+    bearer:
+      type: http
+      scheme: bearer
+      bearerFormat: ps_live_…
+      description: Pagesnap API key.
+    apiHeader:
+      type: apiKey
+      in: header
+      name: X-API-Key
+    apiQuery:
+      type: apiKey
+      in: query
+      name: key
+      description: Compatibility only; headers avoid key leakage in URLs.
+    x402:
+      type: apiKey
+      in: header
+      name: PAYMENT-SIGNATURE
+      description: x402 v2 exact EIP-3009 USDC authorization on Base; X-PAYMENT is a legacy alias.
+x-pagesnap-limits:
+  quotaUnits:
+    read: 1
+    screenshot: 1
+    pdf: 1
+    meta: 1
+    extract: 1
+    render: 1
+    diff: 2
+    batch: one per URL
+    crawl: one per reserved page
+    llmsTxt: one per reserved page
+    monitorCheck: 1
+  planCrawlCaps:
+    anon: 5
+    free: 25
+    starter: 50
+    pro: 200
+    scale: 200
+  synchronousCrawlPages: 25
+  target:
+    perMin: 60
+    concurrency: 3
+  monitorCaps:
+    free: 2
+    starter: 10
+    pro: 50
+    scale: 200
+  jobRetentionHours: 24
+  temporaryLinkHours: 1
