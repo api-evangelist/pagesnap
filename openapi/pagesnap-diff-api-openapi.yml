@@ -245,20 +245,8 @@ paths:
           $ref: '#/components/responses/Unavailable'
 components:
   responses:
-    Timeout:
-      description: Target or action timed out.
-      headers:
-        Retry-After:
-          schema:
-            type: integer
-            minimum: 0
-          description: Seconds to wait when supplied.
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Error'
-    RateLimited:
-      description: Caller, quota, concurrency, or target-host limit reached.
+    UpstreamFailure:
+      description: Target or rendering engine failed.
       headers:
         Retry-After:
           schema:
@@ -281,18 +269,6 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/Error'
-    UpstreamFailure:
-      description: Target or rendering engine failed.
-      headers:
-        Retry-After:
-          schema:
-            type: integer
-            minimum: 0
-          description: Seconds to wait when supplied.
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Error'
     Unauthorized:
       description: Missing or invalid credentials.
       headers:
@@ -305,8 +281,20 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/Error'
-    Unprocessable:
-      description: Input is understood but unsupported or cannot be processed.
+    Timeout:
+      description: Target or action timed out.
+      headers:
+        Retry-After:
+          schema:
+            type: integer
+            minimum: 0
+          description: Seconds to wait when supplied.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    RateLimited:
+      description: Caller, quota, concurrency, or target-host limit reached.
       headers:
         Retry-After:
           schema:
@@ -353,6 +341,18 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/Error'
+    Unprocessable:
+      description: Input is understood but unsupported or cannot be processed.
+      headers:
+        Retry-After:
+          schema:
+            type: integer
+            minimum: 0
+          description: Seconds to wait when supplied.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
   schemas:
     VisualDiff:
       type: object
@@ -383,29 +383,6 @@ components:
             type: string
           minItems: 2
           maxItems: 2
-    TextDiff:
-      type: object
-      required:
-      - ok
-      - mode
-      - percent_changed
-      - added
-      - removed
-      properties:
-        ok:
-          const: true
-        mode:
-          const: text
-        percent_changed:
-          type: number
-        added:
-          type: array
-          items:
-            type: string
-        removed:
-          type: array
-          items:
-            type: string
     Error:
       type: object
       required:
@@ -490,6 +467,29 @@ components:
               type: integer
               minimum: 100
               maximum: 599
+    TextDiff:
+      type: object
+      required:
+      - ok
+      - mode
+      - percent_changed
+      - added
+      - removed
+      properties:
+        ok:
+          const: true
+        mode:
+          const: text
+        percent_changed:
+          type: number
+        added:
+          type: array
+          items:
+            type: string
+        removed:
+          type: array
+          items:
+            type: string
   securitySchemes:
     bearer:
       type: http

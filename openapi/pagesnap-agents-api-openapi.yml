@@ -127,18 +127,6 @@ paths:
           $ref: '#/components/responses/Internal'
 components:
   responses:
-    UnsupportedMedia:
-      description: Unsupported request content type.
-      headers:
-        Retry-After:
-          schema:
-            type: integer
-            minimum: 0
-          description: Seconds to wait when supplied.
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Error'
     RateLimited:
       description: Caller, quota, concurrency, or target-host limit reached.
       headers:
@@ -163,6 +151,18 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/Error'
+    Internal:
+      description: Internal failure.
+      headers:
+        Retry-After:
+          schema:
+            type: integer
+            minimum: 0
+          description: Seconds to wait when supplied.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
     TooLarge:
       description: Request or stored result is too large.
       headers:
@@ -175,8 +175,8 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/Error'
-    Internal:
-      description: Internal failure.
+    UnsupportedMedia:
+      description: Unsupported request content type.
       headers:
         Retry-After:
           schema:
@@ -200,37 +200,6 @@ components:
           schema:
             $ref: '#/components/schemas/Error'
   schemas:
-    JsonRpcResponse:
-      type: object
-      required:
-      - jsonrpc
-      - id
-      properties:
-        jsonrpc:
-          const: '2.0'
-        id: {}
-        result: {}
-        error:
-          type: object
-          properties:
-            code:
-              type: integer
-            message:
-              type: string
-    JsonRpcRequest:
-      type: object
-      required:
-      - jsonrpc
-      - id
-      - method
-      properties:
-        jsonrpc:
-          const: '2.0'
-        id: {}
-        method:
-          type: string
-        params:
-          type: object
     Error:
       type: object
       required:
@@ -315,6 +284,37 @@ components:
               type: integer
               minimum: 100
               maximum: 599
+    JsonRpcRequest:
+      type: object
+      required:
+      - jsonrpc
+      - id
+      - method
+      properties:
+        jsonrpc:
+          const: '2.0'
+        id: {}
+        method:
+          type: string
+        params:
+          type: object
+    JsonRpcResponse:
+      type: object
+      required:
+      - jsonrpc
+      - id
+      properties:
+        jsonrpc:
+          const: '2.0'
+        id: {}
+        result: {}
+        error:
+          type: object
+          properties:
+            code:
+              type: integer
+            message:
+              type: string
   securitySchemes:
     bearer:
       type: http

@@ -175,7 +175,141 @@ paths:
         '503':
           $ref: '#/components/responses/Unavailable'
 components:
+  responses:
+    Conflict:
+      description: Current resource state conflicts with the request.
+      headers:
+        Retry-After:
+          schema:
+            type: integer
+            minimum: 0
+          description: Seconds to wait when supplied.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    UpstreamFailure:
+      description: Target or rendering engine failed.
+      headers:
+        Retry-After:
+          schema:
+            type: integer
+            minimum: 0
+          description: Seconds to wait when supplied.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    BadRequest:
+      description: Invalid or missing input.
+      headers:
+        Retry-After:
+          schema:
+            type: integer
+            minimum: 0
+          description: Seconds to wait when supplied.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    Unauthorized:
+      description: Missing or invalid credentials.
+      headers:
+        Retry-After:
+          schema:
+            type: integer
+            minimum: 0
+          description: Seconds to wait when supplied.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    RateLimited:
+      description: Caller, quota, concurrency, or target-host limit reached.
+      headers:
+        Retry-After:
+          schema:
+            type: integer
+            minimum: 0
+          description: Seconds to wait when supplied.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    NotFound:
+      description: Resource not found or expired.
+      headers:
+        Retry-After:
+          schema:
+            type: integer
+            minimum: 0
+          description: Seconds to wait when supplied.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    Unavailable:
+      description: Capacity, facilitator, billing, or engine temporarily unavailable.
+      headers:
+        Retry-After:
+          schema:
+            type: integer
+            minimum: 0
+          description: Seconds to wait when supplied.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    Forbidden:
+      description: Disabled key, plan restriction, or blocked target.
+      headers:
+        Retry-After:
+          schema:
+            type: integer
+            minimum: 0
+          description: Seconds to wait when supplied.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    Unprocessable:
+      description: Input is understood but unsupported or cannot be processed.
+      headers:
+        Retry-After:
+          schema:
+            type: integer
+            minimum: 0
+          description: Seconds to wait when supplied.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
   schemas:
+    CheckoutStatus:
+      type: object
+      required:
+      - status
+      - plan
+      additionalProperties: true
+      properties:
+        status:
+          type: string
+        plan:
+          type: string
+        plan_expires_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        tx:
+          type:
+          - object
+          - string
+          - 'null'
+        shortfall:
+          type:
+          - object
+          - 'null'
     Checkout:
       type: object
       required:
@@ -204,57 +338,6 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/CheckoutOption'
-    CheckoutOption:
-      type: object
-      required:
-      - chain
-      - chain_id
-      - token
-      - address
-      - amount
-      - pay_uri
-      properties:
-        chain:
-          type: string
-        chain_id:
-          type: integer
-        token:
-          type: string
-        contract:
-          type:
-          - string
-          - 'null'
-        address:
-          type: string
-        amount:
-          type: string
-        pay_uri:
-          type: string
-    CheckoutStatus:
-      type: object
-      required:
-      - status
-      - plan
-      additionalProperties: true
-      properties:
-        status:
-          type: string
-        plan:
-          type: string
-        plan_expires_at:
-          type:
-          - string
-          - 'null'
-          format: date-time
-        tx:
-          type:
-          - object
-          - string
-          - 'null'
-        shortfall:
-          type:
-          - object
-          - 'null'
     Error:
       type: object
       required:
@@ -339,115 +422,32 @@ components:
               type: integer
               minimum: 100
               maximum: 599
-  responses:
-    NotFound:
-      description: Resource not found or expired.
-      headers:
-        Retry-After:
-          schema:
-            type: integer
-            minimum: 0
-          description: Seconds to wait when supplied.
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Error'
-    RateLimited:
-      description: Caller, quota, concurrency, or target-host limit reached.
-      headers:
-        Retry-After:
-          schema:
-            type: integer
-            minimum: 0
-          description: Seconds to wait when supplied.
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Error'
-    BadRequest:
-      description: Invalid or missing input.
-      headers:
-        Retry-After:
-          schema:
-            type: integer
-            minimum: 0
-          description: Seconds to wait when supplied.
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Error'
-    UpstreamFailure:
-      description: Target or rendering engine failed.
-      headers:
-        Retry-After:
-          schema:
-            type: integer
-            minimum: 0
-          description: Seconds to wait when supplied.
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Error'
-    Conflict:
-      description: Current resource state conflicts with the request.
-      headers:
-        Retry-After:
-          schema:
-            type: integer
-            minimum: 0
-          description: Seconds to wait when supplied.
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Error'
-    Unauthorized:
-      description: Missing or invalid credentials.
-      headers:
-        Retry-After:
-          schema:
-            type: integer
-            minimum: 0
-          description: Seconds to wait when supplied.
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Error'
-    Unprocessable:
-      description: Input is understood but unsupported or cannot be processed.
-      headers:
-        Retry-After:
-          schema:
-            type: integer
-            minimum: 0
-          description: Seconds to wait when supplied.
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Error'
-    Unavailable:
-      description: Capacity, facilitator, billing, or engine temporarily unavailable.
-      headers:
-        Retry-After:
-          schema:
-            type: integer
-            minimum: 0
-          description: Seconds to wait when supplied.
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Error'
-    Forbidden:
-      description: Disabled key, plan restriction, or blocked target.
-      headers:
-        Retry-After:
-          schema:
-            type: integer
-            minimum: 0
-          description: Seconds to wait when supplied.
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Error'
+    CheckoutOption:
+      type: object
+      required:
+      - chain
+      - chain_id
+      - token
+      - address
+      - amount
+      - pay_uri
+      properties:
+        chain:
+          type: string
+        chain_id:
+          type: integer
+        token:
+          type: string
+        contract:
+          type:
+          - string
+          - 'null'
+        address:
+          type: string
+        amount:
+          type: string
+        pay_uri:
+          type: string
   securitySchemes:
     bearer:
       type: http

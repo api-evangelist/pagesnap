@@ -1704,6 +1704,93 @@ paths:
           $ref: '#/components/responses/NotFound'
 components:
   schemas:
+    MetaResult:
+      type: object
+      required:
+      - ok
+      additionalProperties: true
+      properties:
+        ok:
+          const: true
+        title:
+          type: string
+        description:
+          type: string
+        image:
+          type:
+          - string
+          - 'null'
+        favicon:
+          type:
+          - string
+          - 'null'
+        siteName:
+          type:
+          - string
+          - 'null'
+        canonical:
+          type:
+          - string
+          - 'null'
+        finalUrl:
+          type: string
+        status:
+          type: integer
+        author:
+          type:
+          - string
+          - 'null'
+        publishedTime:
+          type:
+          - string
+          - 'null'
+        twitter:
+          type: object
+    ReadResult:
+      type: object
+      required:
+      - ok
+      additionalProperties: true
+      properties:
+        ok:
+          const: true
+        title:
+          type: string
+        finalUrl:
+          type: string
+          format: uri
+        markdown:
+          type: string
+        text:
+          type: string
+        html:
+          type: string
+        tokensEstimate:
+          type: integer
+          minimum: 0
+        rawBytes:
+          type: integer
+          minimum: 0
+          description: Fetched or rendered source bytes before extraction.
+        pdfPages:
+          type: integer
+          minimum: 1
+        pdfPagesProcessed:
+          type: integer
+          minimum: 0
+        noTextLayer:
+          type: boolean
+          description: True when a PDF contains no extractable text layer; Pagesnap does not pretend OCR occurred.
+        truncated:
+          type: boolean
+        links:
+          type: array
+          items:
+            type: object
+        images:
+          type: array
+          items:
+            type: object
     Actions:
       type: array
       maxItems: 10
@@ -1856,80 +1943,6 @@ components:
               type: integer
               minimum: 200
               maximum: 10000
-    ReadResult:
-      type: object
-      required:
-      - ok
-      additionalProperties: true
-      properties:
-        ok:
-          const: true
-        title:
-          type: string
-        finalUrl:
-          type: string
-          format: uri
-        markdown:
-          type: string
-        text:
-          type: string
-        html:
-          type: string
-        tokensEstimate:
-          type: integer
-          minimum: 0
-        rawBytes:
-          type: integer
-          minimum: 0
-          description: Fetched or rendered source bytes before extraction.
-        pdfPages:
-          type: integer
-          minimum: 1
-        pdfPagesProcessed:
-          type: integer
-          minimum: 0
-        noTextLayer:
-          type: boolean
-          description: True when a PDF contains no extractable text layer; Pagesnap does not pretend OCR occurred.
-        truncated:
-          type: boolean
-        links:
-          type: array
-          items:
-            type: object
-        images:
-          type: array
-          items:
-            type: object
-    ExtractResult:
-      type: object
-      required:
-      - ok
-      additionalProperties: true
-      properties:
-        ok:
-          const: true
-        jsonLd:
-          type: array
-          items: {}
-        microdata:
-          type: array
-          items: {}
-        rdfa:
-          type: array
-          items: {}
-        products:
-          type: array
-          items: {}
-        articles:
-          type: array
-          items: {}
-        breadcrumbs:
-          type: array
-          items: {}
-        faqs:
-          type: array
-          items: {}
     Error:
       type: object
       required:
@@ -2014,7 +2027,7 @@ components:
               type: integer
               minimum: 100
               maximum: 599
-    MetaResult:
+    ExtractResult:
       type: object
       required:
       - ok
@@ -2022,40 +2035,27 @@ components:
       properties:
         ok:
           const: true
-        title:
-          type: string
-        description:
-          type: string
-        image:
-          type:
-          - string
-          - 'null'
-        favicon:
-          type:
-          - string
-          - 'null'
-        siteName:
-          type:
-          - string
-          - 'null'
-        canonical:
-          type:
-          - string
-          - 'null'
-        finalUrl:
-          type: string
-        status:
-          type: integer
-        author:
-          type:
-          - string
-          - 'null'
-        publishedTime:
-          type:
-          - string
-          - 'null'
-        twitter:
-          type: object
+        jsonLd:
+          type: array
+          items: {}
+        microdata:
+          type: array
+          items: {}
+        rdfa:
+          type: array
+          items: {}
+        products:
+          type: array
+          items: {}
+        articles:
+          type: array
+          items: {}
+        breadcrumbs:
+          type: array
+          items: {}
+        faqs:
+          type: array
+          items: {}
     BatchResult:
       type: object
       required:
@@ -2084,32 +2084,8 @@ components:
               error:
                 type: string
   responses:
-    Timeout:
-      description: Target or action timed out.
-      headers:
-        Retry-After:
-          schema:
-            type: integer
-            minimum: 0
-          description: Seconds to wait when supplied.
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Error'
-    NotFound:
-      description: Resource not found or expired.
-      headers:
-        Retry-After:
-          schema:
-            type: integer
-            minimum: 0
-          description: Seconds to wait when supplied.
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Error'
-    RateLimited:
-      description: Caller, quota, concurrency, or target-host limit reached.
+    UpstreamFailure:
+      description: Target or rendering engine failed.
       headers:
         Retry-After:
           schema:
@@ -2132,8 +2108,20 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/Error'
-    UpstreamFailure:
-      description: Target or rendering engine failed.
+    Timeout:
+      description: Target or action timed out.
+      headers:
+        Retry-After:
+          schema:
+            type: integer
+            minimum: 0
+          description: Seconds to wait when supplied.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    TooLarge:
+      description: Request or stored result is too large.
       headers:
         Retry-After:
           schema:
@@ -2156,8 +2144,8 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/Error'
-    Unprocessable:
-      description: Input is understood but unsupported or cannot be processed.
+    RateLimited:
+      description: Caller, quota, concurrency, or target-host limit reached.
       headers:
         Retry-After:
           schema:
@@ -2168,8 +2156,8 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/Error'
-    TooLarge:
-      description: Request or stored result is too large.
+    NotFound:
+      description: Resource not found or expired.
       headers:
         Retry-After:
           schema:
@@ -2194,6 +2182,18 @@ components:
             $ref: '#/components/schemas/Error'
     Forbidden:
       description: Disabled key, plan restriction, or blocked target.
+      headers:
+        Retry-After:
+          schema:
+            type: integer
+            minimum: 0
+          description: Seconds to wait when supplied.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    Unprocessable:
+      description: Input is understood but unsupported or cannot be processed.
       headers:
         Retry-After:
           schema:

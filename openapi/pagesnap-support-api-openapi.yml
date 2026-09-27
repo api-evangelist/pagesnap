@@ -109,56 +109,44 @@ paths:
         '429':
           $ref: '#/components/responses/RateLimited'
 components:
+  responses:
+    RateLimited:
+      description: Caller, quota, concurrency, or target-host limit reached.
+      headers:
+        Retry-After:
+          schema:
+            type: integer
+            minimum: 0
+          description: Seconds to wait when supplied.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    BadRequest:
+      description: Invalid or missing input.
+      headers:
+        Retry-After:
+          schema:
+            type: integer
+            minimum: 0
+          description: Seconds to wait when supplied.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    NotFound:
+      description: Resource not found or expired.
+      headers:
+        Retry-After:
+          schema:
+            type: integer
+            minimum: 0
+          description: Seconds to wait when supplied.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
   schemas:
-    SupportTicketResponse:
-      type: object
-      required:
-      - ok
-      - ticket
-      additionalProperties: true
-      properties:
-        ok:
-          const: true
-        ticket_url:
-          type: string
-        ticket:
-          type: object
-          additionalProperties: true
-        messages:
-          type: array
-          items:
-            type: object
-    SupportInput:
-      type: object
-      additionalProperties: false
-      required:
-      - subject
-      - message
-      properties:
-        subject:
-          type: string
-          minLength: 1
-          maxLength: 160
-        category:
-          type: string
-          enum:
-          - general
-          - technical
-          - billing
-          - takedown
-          - oss
-          default: general
-        message:
-          type: string
-          minLength: 1
-          maxLength: 5000
-        contact:
-          type: string
-          maxLength: 200
-        key_prefix:
-          type: string
-          maxLength: 16
-          description: Never send a complete API key.
     Error:
       type: object
       required:
@@ -243,43 +231,55 @@ components:
               type: integer
               minimum: 100
               maximum: 599
-  responses:
-    NotFound:
-      description: Resource not found or expired.
-      headers:
-        Retry-After:
-          schema:
-            type: integer
-            minimum: 0
-          description: Seconds to wait when supplied.
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Error'
-    RateLimited:
-      description: Caller, quota, concurrency, or target-host limit reached.
-      headers:
-        Retry-After:
-          schema:
-            type: integer
-            minimum: 0
-          description: Seconds to wait when supplied.
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Error'
-    BadRequest:
-      description: Invalid or missing input.
-      headers:
-        Retry-After:
-          schema:
-            type: integer
-            minimum: 0
-          description: Seconds to wait when supplied.
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Error'
+    SupportInput:
+      type: object
+      additionalProperties: false
+      required:
+      - subject
+      - message
+      properties:
+        subject:
+          type: string
+          minLength: 1
+          maxLength: 160
+        category:
+          type: string
+          enum:
+          - general
+          - technical
+          - billing
+          - takedown
+          - oss
+          default: general
+        message:
+          type: string
+          minLength: 1
+          maxLength: 5000
+        contact:
+          type: string
+          maxLength: 200
+        key_prefix:
+          type: string
+          maxLength: 16
+          description: Never send a complete API key.
+    SupportTicketResponse:
+      type: object
+      required:
+      - ok
+      - ticket
+      additionalProperties: true
+      properties:
+        ok:
+          const: true
+        ticket_url:
+          type: string
+        ticket:
+          type: object
+          additionalProperties: true
+        messages:
+          type: array
+          items:
+            type: object
   securitySchemes:
     bearer:
       type: http

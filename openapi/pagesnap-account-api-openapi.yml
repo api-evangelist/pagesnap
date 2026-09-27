@@ -151,37 +151,6 @@ paths:
           $ref: '#/components/responses/Forbidden'
 components:
   schemas:
-    KeyCreated:
-      type: object
-      required:
-      - ok
-      - key
-      - plan
-      - trial
-      - limits
-      additionalProperties: true
-      properties:
-        ok:
-          const: true
-        key:
-          type: string
-          writeOnly: true
-        plan:
-          type: string
-          enum:
-          - free
-          - pro
-        trial:
-          type: boolean
-        plan_expires_at:
-          type:
-          - integer
-          - 'null'
-          description: Unix milliseconds; normally seven days after creation for a trial.
-        limits:
-          type: object
-        referral_bonus:
-          type: object
     LinkGrant:
       type: object
       required:
@@ -211,55 +180,6 @@ components:
           type: integer
         next_check_at:
           type: integer
-    LinkGrantResponse:
-      type: object
-      required:
-      - ok
-      - plan
-      - grant
-      properties:
-        ok:
-          const: true
-        plan:
-          const: pro
-        grant:
-          $ref: '#/components/schemas/LinkGrant'
-        dashboard:
-          type: string
-          format: uri
-    Account:
-      type: object
-      required:
-      - ok
-      - plan
-      - limits
-      - usage
-      additionalProperties: true
-      properties:
-        ok:
-          const: true
-        plan:
-          type: string
-        trial:
-          type: boolean
-        trial_days_remaining:
-          type: integer
-        link_grant:
-          anyOf:
-          - $ref: '#/components/schemas/LinkGrant'
-          - type: 'null'
-        limits:
-          type: object
-        usage:
-          type: object
-        orders:
-          type: array
-          items:
-            type: object
-        referral:
-          type:
-          - object
-          - 'null'
     Error:
       type: object
       required:
@@ -344,31 +264,87 @@ components:
               type: integer
               minimum: 100
               maximum: 599
+    LinkGrantResponse:
+      type: object
+      required:
+      - ok
+      - plan
+      - grant
+      properties:
+        ok:
+          const: true
+        plan:
+          const: pro
+        grant:
+          $ref: '#/components/schemas/LinkGrant'
+        dashboard:
+          type: string
+          format: uri
+    Account:
+      type: object
+      required:
+      - ok
+      - plan
+      - limits
+      - usage
+      additionalProperties: true
+      properties:
+        ok:
+          const: true
+        plan:
+          type: string
+        trial:
+          type: boolean
+        trial_days_remaining:
+          type: integer
+        link_grant:
+          anyOf:
+          - $ref: '#/components/schemas/LinkGrant'
+          - type: 'null'
+        limits:
+          type: object
+        usage:
+          type: object
+        orders:
+          type: array
+          items:
+            type: object
+        referral:
+          type:
+          - object
+          - 'null'
+    KeyCreated:
+      type: object
+      required:
+      - ok
+      - key
+      - plan
+      - trial
+      - limits
+      additionalProperties: true
+      properties:
+        ok:
+          const: true
+        key:
+          type: string
+          writeOnly: true
+        plan:
+          type: string
+          enum:
+          - free
+          - pro
+        trial:
+          type: boolean
+        plan_expires_at:
+          type:
+          - integer
+          - 'null'
+          description: Unix milliseconds; normally seven days after creation for a trial.
+        limits:
+          type: object
+        referral_bonus:
+          type: object
   responses:
-    RateLimited:
-      description: Caller, quota, concurrency, or target-host limit reached.
-      headers:
-        Retry-After:
-          schema:
-            type: integer
-            minimum: 0
-          description: Seconds to wait when supplied.
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Error'
-    BadRequest:
-      description: Invalid or missing input.
-      headers:
-        Retry-After:
-          schema:
-            type: integer
-            minimum: 0
-          description: Seconds to wait when supplied.
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Error'
     UpstreamFailure:
       description: Target or rendering engine failed.
       headers:
@@ -405,8 +381,20 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/Error'
-    Unprocessable:
-      description: Input is understood but unsupported or cannot be processed.
+    BadRequest:
+      description: Invalid or missing input.
+      headers:
+        Retry-After:
+          schema:
+            type: integer
+            minimum: 0
+          description: Seconds to wait when supplied.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    RateLimited:
+      description: Caller, quota, concurrency, or target-host limit reached.
       headers:
         Retry-After:
           schema:
@@ -419,6 +407,18 @@ components:
             $ref: '#/components/schemas/Error'
     Forbidden:
       description: Disabled key, plan restriction, or blocked target.
+      headers:
+        Retry-After:
+          schema:
+            type: integer
+            minimum: 0
+          description: Seconds to wait when supplied.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    Unprocessable:
+      description: Input is understood but unsupported or cannot be processed.
       headers:
         Retry-After:
           schema:

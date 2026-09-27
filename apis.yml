@@ -31,7 +31,7 @@ tags:
 - Web Crawling
 - Change Monitoring
 - llms-txt
-- Agent Payments
+- Agentic Payments
 - Software-as-a-Service
 tags_raw:
 - developer-tools
@@ -51,6 +51,7 @@ tags_raw:
 - llms-txt
 - agent-payments
 - saas
+- Agent Payments
 apis:
 - aid: pagesnap:pagesnap-account-api
   name: Pagesnap Account API
