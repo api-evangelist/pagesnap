@@ -127,32 +127,8 @@ paths:
           $ref: '#/components/responses/Internal'
 components:
   responses:
-    RateLimited:
-      description: Caller, quota, concurrency, or target-host limit reached.
-      headers:
-        Retry-After:
-          schema:
-            type: integer
-            minimum: 0
-          description: Seconds to wait when supplied.
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Error'
     Unauthorized:
       description: Missing or invalid credentials.
-      headers:
-        Retry-After:
-          schema:
-            type: integer
-            minimum: 0
-          description: Seconds to wait when supplied.
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Error'
-    Internal:
-      description: Internal failure.
       headers:
         Retry-After:
           schema:
@@ -175,8 +151,8 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/Error'
-    UnsupportedMedia:
-      description: Unsupported request content type.
+    RateLimited:
+      description: Caller, quota, concurrency, or target-host limit reached.
       headers:
         Retry-After:
           schema:
@@ -199,7 +175,48 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/Error'
+    Internal:
+      description: Internal failure.
+      headers:
+        Retry-After:
+          schema:
+            type: integer
+            minimum: 0
+          description: Seconds to wait when supplied.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    UnsupportedMedia:
+      description: Unsupported request content type.
+      headers:
+        Retry-After:
+          schema:
+            type: integer
+            minimum: 0
+          description: Seconds to wait when supplied.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
   schemas:
+    JsonRpcResponse:
+      type: object
+      required:
+      - jsonrpc
+      - id
+      properties:
+        jsonrpc:
+          const: '2.0'
+        id: {}
+        result: {}
+        error:
+          type: object
+          properties:
+            code:
+              type: integer
+            message:
+              type: string
     Error:
       type: object
       required:
@@ -298,23 +315,6 @@ components:
           type: string
         params:
           type: object
-    JsonRpcResponse:
-      type: object
-      required:
-      - jsonrpc
-      - id
-      properties:
-        jsonrpc:
-          const: '2.0'
-        id: {}
-        result: {}
-        error:
-          type: object
-          properties:
-            code:
-              type: integer
-            message:
-              type: string
   securitySchemes:
     bearer:
       type: http

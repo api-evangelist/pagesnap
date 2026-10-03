@@ -176,8 +176,20 @@ paths:
           $ref: '#/components/responses/Unavailable'
 components:
   responses:
-    Conflict:
-      description: Current resource state conflicts with the request.
+    Unauthorized:
+      description: Missing or invalid credentials.
+      headers:
+        Retry-After:
+          schema:
+            type: integer
+            minimum: 0
+          description: Seconds to wait when supplied.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    Unprocessable:
+      description: Input is understood but unsupported or cannot be processed.
       headers:
         Retry-After:
           schema:
@@ -190,30 +202,6 @@ components:
             $ref: '#/components/schemas/Error'
     UpstreamFailure:
       description: Target or rendering engine failed.
-      headers:
-        Retry-After:
-          schema:
-            type: integer
-            minimum: 0
-          description: Seconds to wait when supplied.
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Error'
-    BadRequest:
-      description: Invalid or missing input.
-      headers:
-        Retry-After:
-          schema:
-            type: integer
-            minimum: 0
-          description: Seconds to wait when supplied.
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Error'
-    Unauthorized:
-      description: Missing or invalid credentials.
       headers:
         Retry-After:
           schema:
@@ -272,8 +260,20 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/Error'
-    Unprocessable:
-      description: Input is understood but unsupported or cannot be processed.
+    Conflict:
+      description: Current resource state conflicts with the request.
+      headers:
+        Retry-After:
+          schema:
+            type: integer
+            minimum: 0
+          description: Seconds to wait when supplied.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    BadRequest:
+      description: Invalid or missing input.
       headers:
         Retry-After:
           schema:
@@ -310,34 +310,6 @@ components:
           type:
           - object
           - 'null'
-    Checkout:
-      type: object
-      required:
-      - ok
-      - order_id
-      - pay_url
-      - status_url
-      - amount_usd
-      - expires_at
-      - options
-      properties:
-        ok:
-          const: true
-        order_id:
-          type: string
-        pay_url:
-          type: string
-        status_url:
-          type: string
-        amount_usd:
-          type: number
-        expires_at:
-          type: string
-          format: date-time
-        options:
-          type: array
-          items:
-            $ref: '#/components/schemas/CheckoutOption'
     Error:
       type: object
       required:
@@ -422,6 +394,34 @@ components:
               type: integer
               minimum: 100
               maximum: 599
+    Checkout:
+      type: object
+      required:
+      - ok
+      - order_id
+      - pay_url
+      - status_url
+      - amount_usd
+      - expires_at
+      - options
+      properties:
+        ok:
+          const: true
+        order_id:
+          type: string
+        pay_url:
+          type: string
+        status_url:
+          type: string
+        amount_usd:
+          type: number
+        expires_at:
+          type: string
+          format: date-time
+        options:
+          type: array
+          items:
+            $ref: '#/components/schemas/CheckoutOption'
     CheckoutOption:
       type: object
       required:

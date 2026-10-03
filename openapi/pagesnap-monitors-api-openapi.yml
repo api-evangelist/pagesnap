@@ -334,42 +334,6 @@ paths:
           $ref: '#/components/responses/Unavailable'
 components:
   responses:
-    UpstreamFailure:
-      description: Target or rendering engine failed.
-      headers:
-        Retry-After:
-          schema:
-            type: integer
-            minimum: 0
-          description: Seconds to wait when supplied.
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Error'
-    RateLimited:
-      description: Caller, quota, concurrency, or target-host limit reached.
-      headers:
-        Retry-After:
-          schema:
-            type: integer
-            minimum: 0
-          description: Seconds to wait when supplied.
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Error'
-    BadRequest:
-      description: Invalid or missing input.
-      headers:
-        Retry-After:
-          schema:
-            type: integer
-            minimum: 0
-          description: Seconds to wait when supplied.
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Error'
     Unauthorized:
       description: Missing or invalid credentials.
       headers:
@@ -382,8 +346,32 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/Error'
-    Conflict:
-      description: Current resource state conflicts with the request.
+    UpstreamFailure:
+      description: Target or rendering engine failed.
+      headers:
+        Retry-After:
+          schema:
+            type: integer
+            minimum: 0
+          description: Seconds to wait when supplied.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    Unprocessable:
+      description: Input is understood but unsupported or cannot be processed.
+      headers:
+        Retry-After:
+          schema:
+            type: integer
+            minimum: 0
+          description: Seconds to wait when supplied.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    RateLimited:
+      description: Caller, quota, concurrency, or target-host limit reached.
       headers:
         Retry-After:
           schema:
@@ -418,8 +406,20 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/Error'
-    Unprocessable:
-      description: Input is understood but unsupported or cannot be processed.
+    Conflict:
+      description: Current resource state conflicts with the request.
+      headers:
+        Retry-After:
+          schema:
+            type: integer
+            minimum: 0
+          description: Seconds to wait when supplied.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    BadRequest:
+      description: Invalid or missing input.
       headers:
         Retry-After:
           schema:
@@ -431,80 +431,157 @@ components:
           schema:
             $ref: '#/components/schemas/Error'
   schemas:
-    Monitor:
+    Error:
       type: object
       required:
-      - id
-      - url
-      - mode
-      - interval
-      - threshold_percent
-      - status
-      additionalProperties: true
+      - error
       properties:
-        id:
-          type: string
-        url:
-          type: string
-        mode:
-          type: string
-          enum:
-          - text
-          - visual
-          - meta
-        interval:
-          type: string
-          enum:
-          - 1h
-          - 6h
-          - 24h
-        selector:
-          type:
-          - string
-          - 'null'
-        threshold_percent:
-          type: number
-        webhook_url:
-          type:
-          - string
-          - 'null'
-        webhook_enabled:
-          type: boolean
-        webhook_failures:
-          type: integer
-        webhook_note:
-          type:
-          - string
-          - 'null'
-        screenshot_options:
+        error:
           type: object
-        status:
-          type: string
-          enum:
-          - active
-          - paused
-        paused_reason:
-          type:
-          - string
-          - 'null'
-        created_at:
-          type: string
-          format: date-time
-        next_check_at:
-          type: string
-          format: date-time
-        last_checked_at:
-          type:
-          - string
-          - 'null'
-        last_changed_at:
-          type:
-          - string
-          - 'null'
-        last_check:
-          type:
-          - object
-          - 'null'
+          required:
+          - code
+          - message
+          properties:
+            code:
+              type: string
+              enum:
+              - MISSING_URL
+              - INVALID_URL
+              - INVALID_ACTIONS
+              - MISSING_HTML
+              - MISSING_URLS
+              - BATCH_TOO_LARGE
+              - BAD_REQUEST
+              - INVALID_KEY
+              - KEY_REQUIRED
+              - KEY_DISABLED
+              - BLOCKED_URL
+              - TIMEOUT
+              - ACTION_FAILED
+              - TOO_LARGE
+              - RESULT_TOO_LARGE
+              - UNSUPPORTED
+              - UNSUPPORTED_MEDIA
+              - RATE_LIMITED
+              - TARGET_BUSY
+              - ANON_GLOBAL_QUOTA
+              - DAILY_QUOTA
+              - MONTHLY_QUOTA
+              - CONCURRENCY
+              - KEY_LIMIT
+              - KEY_SPIKE_LIMIT
+              - BUSY
+              - ENGINE_UNAVAILABLE
+              - NAV_FAILED
+              - HTTP_ERROR
+              - BROWSER_ERROR
+              - JOB_QUEUE_FULL
+              - JOB_NOT_FOUND
+              - JOB_NOT_READY
+              - RESULT_UNAVAILABLE
+              - INVALID_MODE
+              - MONITOR_LIMIT
+              - MONITOR_NOT_FOUND
+              - MONITOR_RUNNING
+              - MONITOR_PAUSED
+              - PLAN_INTERVAL
+              - SNAPSHOT_TOO_LARGE
+              - INVALID_INTERVAL
+              - INVALID_THRESHOLD
+              - INVALID_SELECTOR
+              - INVALID_PLAN
+              - CHECKOUT_CONTEXT_REQUIRED
+              - CHECKOUT_KEY_LIMIT
+              - CHECKOUT_IP_LIMIT
+              - BILLING_UNAVAILABLE
+              - INVOICE_UNAVAILABLE
+              - ORDER_NOT_FOUND
+              - INVOICE_NOT_FOUND
+              - PAYMENT_REPLAY
+              - FACILITATOR_UNAVAILABLE
+              - SETTLEMENT_UNVERIFIED
+              - TICKET_LIMIT
+              - NOT_FOUND
+              - INTERNAL
+            message:
+              type: string
+            reason:
+              type: string
+              enum:
+              - bot_protection
+              - interactive_challenge
+              - ip_policy_or_geo_block
+            upstream_status:
+              type: integer
+              minimum: 100
+              maximum: 599
+    MonitorWithChecks:
+      allOf:
+      - $ref: '#/components/schemas/Monitor'
+      - type: object
+        properties:
+          checks:
+            type: array
+            maxItems: 50
+            items:
+              type: object
+              properties:
+                ts:
+                  type: string
+                  format: date-time
+                changed:
+                  type: boolean
+                percent:
+                  type: number
+                error:
+                  type:
+                  - string
+                  - 'null'
+                snapshot_url:
+                  type:
+                  - string
+                  - 'null'
+                diff_url:
+                  type:
+                  - string
+                  - 'null'
+    MonitorCheckResult:
+      allOf:
+      - $ref: '#/components/schemas/Monitor'
+      - type: object
+        properties:
+          check:
+            type: object
+            properties:
+              ts:
+                type: string
+                format: date-time
+              changed:
+                type: boolean
+              percent:
+                type: number
+              snapshot_url:
+                type:
+                - string
+                - 'null'
+              diff_url:
+                type:
+                - string
+                - 'null'
+              webhook:
+                type:
+                - object
+                - 'null'
+    MonitorWithSecret:
+      allOf:
+      - $ref: '#/components/schemas/Monitor'
+      - type: object
+        required:
+        - webhook_secret
+        properties:
+          webhook_secret:
+            type: string
+            writeOnly: true
     MonitorInput:
       type: object
       additionalProperties: true
@@ -777,157 +854,80 @@ components:
               type: integer
               minimum: 200
               maximum: 10000
-    Error:
+    Monitor:
       type: object
       required:
-      - error
+      - id
+      - url
+      - mode
+      - interval
+      - threshold_percent
+      - status
+      additionalProperties: true
       properties:
-        error:
+        id:
+          type: string
+        url:
+          type: string
+        mode:
+          type: string
+          enum:
+          - text
+          - visual
+          - meta
+        interval:
+          type: string
+          enum:
+          - 1h
+          - 6h
+          - 24h
+        selector:
+          type:
+          - string
+          - 'null'
+        threshold_percent:
+          type: number
+        webhook_url:
+          type:
+          - string
+          - 'null'
+        webhook_enabled:
+          type: boolean
+        webhook_failures:
+          type: integer
+        webhook_note:
+          type:
+          - string
+          - 'null'
+        screenshot_options:
           type: object
-          required:
-          - code
-          - message
-          properties:
-            code:
-              type: string
-              enum:
-              - MISSING_URL
-              - INVALID_URL
-              - INVALID_ACTIONS
-              - MISSING_HTML
-              - MISSING_URLS
-              - BATCH_TOO_LARGE
-              - BAD_REQUEST
-              - INVALID_KEY
-              - KEY_REQUIRED
-              - KEY_DISABLED
-              - BLOCKED_URL
-              - TIMEOUT
-              - ACTION_FAILED
-              - TOO_LARGE
-              - RESULT_TOO_LARGE
-              - UNSUPPORTED
-              - UNSUPPORTED_MEDIA
-              - RATE_LIMITED
-              - TARGET_BUSY
-              - ANON_GLOBAL_QUOTA
-              - DAILY_QUOTA
-              - MONTHLY_QUOTA
-              - CONCURRENCY
-              - KEY_LIMIT
-              - KEY_SPIKE_LIMIT
-              - BUSY
-              - ENGINE_UNAVAILABLE
-              - NAV_FAILED
-              - HTTP_ERROR
-              - BROWSER_ERROR
-              - JOB_QUEUE_FULL
-              - JOB_NOT_FOUND
-              - JOB_NOT_READY
-              - RESULT_UNAVAILABLE
-              - INVALID_MODE
-              - MONITOR_LIMIT
-              - MONITOR_NOT_FOUND
-              - MONITOR_RUNNING
-              - MONITOR_PAUSED
-              - PLAN_INTERVAL
-              - SNAPSHOT_TOO_LARGE
-              - INVALID_INTERVAL
-              - INVALID_THRESHOLD
-              - INVALID_SELECTOR
-              - INVALID_PLAN
-              - CHECKOUT_CONTEXT_REQUIRED
-              - CHECKOUT_KEY_LIMIT
-              - CHECKOUT_IP_LIMIT
-              - BILLING_UNAVAILABLE
-              - INVOICE_UNAVAILABLE
-              - ORDER_NOT_FOUND
-              - INVOICE_NOT_FOUND
-              - PAYMENT_REPLAY
-              - FACILITATOR_UNAVAILABLE
-              - SETTLEMENT_UNVERIFIED
-              - TICKET_LIMIT
-              - NOT_FOUND
-              - INTERNAL
-            message:
-              type: string
-            reason:
-              type: string
-              enum:
-              - bot_protection
-              - interactive_challenge
-              - ip_policy_or_geo_block
-            upstream_status:
-              type: integer
-              minimum: 100
-              maximum: 599
-    MonitorWithSecret:
-      allOf:
-      - $ref: '#/components/schemas/Monitor'
-      - type: object
-        required:
-        - webhook_secret
-        properties:
-          webhook_secret:
-            type: string
-            writeOnly: true
-    MonitorCheckResult:
-      allOf:
-      - $ref: '#/components/schemas/Monitor'
-      - type: object
-        properties:
-          check:
-            type: object
-            properties:
-              ts:
-                type: string
-                format: date-time
-              changed:
-                type: boolean
-              percent:
-                type: number
-              snapshot_url:
-                type:
-                - string
-                - 'null'
-              diff_url:
-                type:
-                - string
-                - 'null'
-              webhook:
-                type:
-                - object
-                - 'null'
-    MonitorWithChecks:
-      allOf:
-      - $ref: '#/components/schemas/Monitor'
-      - type: object
-        properties:
-          checks:
-            type: array
-            maxItems: 50
-            items:
-              type: object
-              properties:
-                ts:
-                  type: string
-                  format: date-time
-                changed:
-                  type: boolean
-                percent:
-                  type: number
-                error:
-                  type:
-                  - string
-                  - 'null'
-                snapshot_url:
-                  type:
-                  - string
-                  - 'null'
-                diff_url:
-                  type:
-                  - string
-                  - 'null'
+        status:
+          type: string
+          enum:
+          - active
+          - paused
+        paused_reason:
+          type:
+          - string
+          - 'null'
+        created_at:
+          type: string
+          format: date-time
+        next_check_at:
+          type: string
+          format: date-time
+        last_checked_at:
+          type:
+          - string
+          - 'null'
+        last_changed_at:
+          type:
+          - string
+          - 'null'
+        last_check:
+          type:
+          - object
+          - 'null'
   securitySchemes:
     bearer:
       type: http

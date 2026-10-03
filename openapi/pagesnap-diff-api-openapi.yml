@@ -245,6 +245,18 @@ paths:
           $ref: '#/components/responses/Unavailable'
 components:
   responses:
+    Unauthorized:
+      description: Missing or invalid credentials.
+      headers:
+        Retry-After:
+          schema:
+            type: integer
+            minimum: 0
+          description: Seconds to wait when supplied.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
     UpstreamFailure:
       description: Target or rendering engine failed.
       headers:
@@ -257,20 +269,8 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/Error'
-    BadRequest:
-      description: Invalid or missing input.
-      headers:
-        Retry-After:
-          schema:
-            type: integer
-            minimum: 0
-          description: Seconds to wait when supplied.
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Error'
-    Unauthorized:
-      description: Missing or invalid credentials.
+    Unprocessable:
+      description: Input is understood but unsupported or cannot be processed.
       headers:
         Retry-After:
           schema:
@@ -341,8 +341,8 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/Error'
-    Unprocessable:
-      description: Input is understood but unsupported or cannot be processed.
+    BadRequest:
+      description: Invalid or missing input.
       headers:
         Retry-After:
           schema:
@@ -354,35 +354,29 @@ components:
           schema:
             $ref: '#/components/schemas/Error'
   schemas:
-    VisualDiff:
+    TextDiff:
       type: object
       required:
       - ok
       - mode
       - percent_changed
-      - bounding_boxes
-      - diff_image
-      - urls
+      - added
+      - removed
       properties:
         ok:
           const: true
         mode:
-          const: visual
+          const: text
         percent_changed:
           type: number
-        bounding_boxes:
-          type: array
-          items:
-            type: object
-        diff_image:
-          type: string
-          format: uri
-        urls:
+        added:
           type: array
           items:
             type: string
-          minItems: 2
-          maxItems: 2
+        removed:
+          type: array
+          items:
+            type: string
     Error:
       type: object
       required:
@@ -467,29 +461,35 @@ components:
               type: integer
               minimum: 100
               maximum: 599
-    TextDiff:
+    VisualDiff:
       type: object
       required:
       - ok
       - mode
       - percent_changed
-      - added
-      - removed
+      - bounding_boxes
+      - diff_image
+      - urls
       properties:
         ok:
           const: true
         mode:
-          const: text
+          const: visual
         percent_changed:
           type: number
-        added:
+        bounding_boxes:
+          type: array
+          items:
+            type: object
+        diff_image:
+          type: string
+          format: uri
+        urls:
           type: array
           items:
             type: string
-        removed:
-          type: array
-          items:
-            type: string
+          minItems: 2
+          maxItems: 2
   securitySchemes:
     bearer:
       type: http
