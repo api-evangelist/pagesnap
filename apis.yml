@@ -476,6 +476,9 @@ maintainers:
   url: https://pagesnap.142-93-197-141.sslip.io
   email: hello@pagesnap.142-93-197-141.sslip.io
 common:
+- type: CapabilityMap
+  url: capabilities/pagesnap-capability-edges.yml
+  name: Pagesnap Business Capability Map
 - type: MCPServer
   url: https://pagesnap.142-93-197-141.sslip.io/mcp
 - type: MCPServer
