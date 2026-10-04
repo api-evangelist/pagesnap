@@ -1703,127 +1703,6 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'
 components:
-  responses:
-    Unauthorized:
-      description: Missing or invalid credentials.
-      headers:
-        Retry-After:
-          schema:
-            type: integer
-            minimum: 0
-          description: Seconds to wait when supplied.
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Error'
-    UpstreamFailure:
-      description: Target or rendering engine failed.
-      headers:
-        Retry-After:
-          schema:
-            type: integer
-            minimum: 0
-          description: Seconds to wait when supplied.
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Error'
-    Unprocessable:
-      description: Input is understood but unsupported or cannot be processed.
-      headers:
-        Retry-After:
-          schema:
-            type: integer
-            minimum: 0
-          description: Seconds to wait when supplied.
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Error'
-    Timeout:
-      description: Target or action timed out.
-      headers:
-        Retry-After:
-          schema:
-            type: integer
-            minimum: 0
-          description: Seconds to wait when supplied.
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Error'
-    RateLimited:
-      description: Caller, quota, concurrency, or target-host limit reached.
-      headers:
-        Retry-After:
-          schema:
-            type: integer
-            minimum: 0
-          description: Seconds to wait when supplied.
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Error'
-    TooLarge:
-      description: Request or stored result is too large.
-      headers:
-        Retry-After:
-          schema:
-            type: integer
-            minimum: 0
-          description: Seconds to wait when supplied.
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Error'
-    NotFound:
-      description: Resource not found or expired.
-      headers:
-        Retry-After:
-          schema:
-            type: integer
-            minimum: 0
-          description: Seconds to wait when supplied.
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Error'
-    Unavailable:
-      description: Capacity, facilitator, billing, or engine temporarily unavailable.
-      headers:
-        Retry-After:
-          schema:
-            type: integer
-            minimum: 0
-          description: Seconds to wait when supplied.
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Error'
-    Forbidden:
-      description: Disabled key, plan restriction, or blocked target.
-      headers:
-        Retry-After:
-          schema:
-            type: integer
-            minimum: 0
-          description: Seconds to wait when supplied.
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Error'
-    BadRequest:
-      description: Invalid or missing input.
-      headers:
-        Retry-After:
-          schema:
-            type: integer
-            minimum: 0
-          description: Seconds to wait when supplied.
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Error'
   schemas:
     BatchResult:
       type: object
@@ -1852,90 +1731,77 @@ components:
               content: {}
               error:
                 type: string
-    Error:
+    ExtractResult:
       type: object
       required:
-      - error
+      - ok
+      additionalProperties: true
       properties:
-        error:
+        ok:
+          const: true
+        jsonLd:
+          type: array
+          items: {}
+        microdata:
+          type: array
+          items: {}
+        rdfa:
+          type: array
+          items: {}
+        products:
+          type: array
+          items: {}
+        articles:
+          type: array
+          items: {}
+        breadcrumbs:
+          type: array
+          items: {}
+        faqs:
+          type: array
+          items: {}
+    MetaResult:
+      type: object
+      required:
+      - ok
+      additionalProperties: true
+      properties:
+        ok:
+          const: true
+        title:
+          type: string
+        description:
+          type: string
+        image:
+          type:
+          - string
+          - 'null'
+        favicon:
+          type:
+          - string
+          - 'null'
+        siteName:
+          type:
+          - string
+          - 'null'
+        canonical:
+          type:
+          - string
+          - 'null'
+        finalUrl:
+          type: string
+        status:
+          type: integer
+        author:
+          type:
+          - string
+          - 'null'
+        publishedTime:
+          type:
+          - string
+          - 'null'
+        twitter:
           type: object
-          required:
-          - code
-          - message
-          properties:
-            code:
-              type: string
-              enum:
-              - MISSING_URL
-              - INVALID_URL
-              - INVALID_ACTIONS
-              - MISSING_HTML
-              - MISSING_URLS
-              - BATCH_TOO_LARGE
-              - BAD_REQUEST
-              - INVALID_KEY
-              - KEY_REQUIRED
-              - KEY_DISABLED
-              - BLOCKED_URL
-              - TIMEOUT
-              - ACTION_FAILED
-              - TOO_LARGE
-              - RESULT_TOO_LARGE
-              - UNSUPPORTED
-              - UNSUPPORTED_MEDIA
-              - RATE_LIMITED
-              - TARGET_BUSY
-              - ANON_GLOBAL_QUOTA
-              - DAILY_QUOTA
-              - MONTHLY_QUOTA
-              - CONCURRENCY
-              - KEY_LIMIT
-              - KEY_SPIKE_LIMIT
-              - BUSY
-              - ENGINE_UNAVAILABLE
-              - NAV_FAILED
-              - HTTP_ERROR
-              - BROWSER_ERROR
-              - JOB_QUEUE_FULL
-              - JOB_NOT_FOUND
-              - JOB_NOT_READY
-              - RESULT_UNAVAILABLE
-              - INVALID_MODE
-              - MONITOR_LIMIT
-              - MONITOR_NOT_FOUND
-              - MONITOR_RUNNING
-              - MONITOR_PAUSED
-              - PLAN_INTERVAL
-              - SNAPSHOT_TOO_LARGE
-              - INVALID_INTERVAL
-              - INVALID_THRESHOLD
-              - INVALID_SELECTOR
-              - INVALID_PLAN
-              - CHECKOUT_CONTEXT_REQUIRED
-              - CHECKOUT_KEY_LIMIT
-              - CHECKOUT_IP_LIMIT
-              - BILLING_UNAVAILABLE
-              - INVOICE_UNAVAILABLE
-              - ORDER_NOT_FOUND
-              - INVOICE_NOT_FOUND
-              - PAYMENT_REPLAY
-              - FACILITATOR_UNAVAILABLE
-              - SETTLEMENT_UNVERIFIED
-              - TICKET_LIMIT
-              - NOT_FOUND
-              - INTERNAL
-            message:
-              type: string
-            reason:
-              type: string
-              enum:
-              - bot_protection
-              - interactive_challenge
-              - ip_policy_or_geo_block
-            upstream_status:
-              type: integer
-              minimum: 100
-              maximum: 599
     Actions:
       type: array
       maxItems: 10
@@ -2088,77 +1954,6 @@ components:
               type: integer
               minimum: 200
               maximum: 10000
-    ExtractResult:
-      type: object
-      required:
-      - ok
-      additionalProperties: true
-      properties:
-        ok:
-          const: true
-        jsonLd:
-          type: array
-          items: {}
-        microdata:
-          type: array
-          items: {}
-        rdfa:
-          type: array
-          items: {}
-        products:
-          type: array
-          items: {}
-        articles:
-          type: array
-          items: {}
-        breadcrumbs:
-          type: array
-          items: {}
-        faqs:
-          type: array
-          items: {}
-    MetaResult:
-      type: object
-      required:
-      - ok
-      additionalProperties: true
-      properties:
-        ok:
-          const: true
-        title:
-          type: string
-        description:
-          type: string
-        image:
-          type:
-          - string
-          - 'null'
-        favicon:
-          type:
-          - string
-          - 'null'
-        siteName:
-          type:
-          - string
-          - 'null'
-        canonical:
-          type:
-          - string
-          - 'null'
-        finalUrl:
-          type: string
-        status:
-          type: integer
-        author:
-          type:
-          - string
-          - 'null'
-        publishedTime:
-          type:
-          - string
-          - 'null'
-        twitter:
-          type: object
     ReadResult:
       type: object
       required:
@@ -2204,6 +1999,211 @@ components:
           type: array
           items:
             type: object
+    Error:
+      type: object
+      required:
+      - error
+      properties:
+        error:
+          type: object
+          required:
+          - code
+          - message
+          properties:
+            code:
+              type: string
+              enum:
+              - MISSING_URL
+              - INVALID_URL
+              - INVALID_ACTIONS
+              - MISSING_HTML
+              - MISSING_URLS
+              - BATCH_TOO_LARGE
+              - BAD_REQUEST
+              - INVALID_KEY
+              - KEY_REQUIRED
+              - KEY_DISABLED
+              - BLOCKED_URL
+              - TIMEOUT
+              - ACTION_FAILED
+              - TOO_LARGE
+              - RESULT_TOO_LARGE
+              - UNSUPPORTED
+              - UNSUPPORTED_MEDIA
+              - RATE_LIMITED
+              - TARGET_BUSY
+              - ANON_GLOBAL_QUOTA
+              - DAILY_QUOTA
+              - MONTHLY_QUOTA
+              - CONCURRENCY
+              - KEY_LIMIT
+              - KEY_SPIKE_LIMIT
+              - BUSY
+              - ENGINE_UNAVAILABLE
+              - NAV_FAILED
+              - HTTP_ERROR
+              - BROWSER_ERROR
+              - JOB_QUEUE_FULL
+              - JOB_NOT_FOUND
+              - JOB_NOT_READY
+              - RESULT_UNAVAILABLE
+              - INVALID_MODE
+              - MONITOR_LIMIT
+              - MONITOR_NOT_FOUND
+              - MONITOR_RUNNING
+              - MONITOR_PAUSED
+              - PLAN_INTERVAL
+              - SNAPSHOT_TOO_LARGE
+              - INVALID_INTERVAL
+              - INVALID_THRESHOLD
+              - INVALID_SELECTOR
+              - INVALID_PLAN
+              - CHECKOUT_CONTEXT_REQUIRED
+              - CHECKOUT_KEY_LIMIT
+              - CHECKOUT_IP_LIMIT
+              - BILLING_UNAVAILABLE
+              - INVOICE_UNAVAILABLE
+              - ORDER_NOT_FOUND
+              - INVOICE_NOT_FOUND
+              - PAYMENT_REPLAY
+              - FACILITATOR_UNAVAILABLE
+              - SETTLEMENT_UNVERIFIED
+              - TICKET_LIMIT
+              - NOT_FOUND
+              - INTERNAL
+            message:
+              type: string
+            reason:
+              type: string
+              enum:
+              - bot_protection
+              - interactive_challenge
+              - ip_policy_or_geo_block
+            upstream_status:
+              type: integer
+              minimum: 100
+              maximum: 599
+  responses:
+    Unauthorized:
+      description: Missing or invalid credentials.
+      headers:
+        Retry-After:
+          schema:
+            type: integer
+            minimum: 0
+          description: Seconds to wait when supplied.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    Unavailable:
+      description: Capacity, facilitator, billing, or engine temporarily unavailable.
+      headers:
+        Retry-After:
+          schema:
+            type: integer
+            minimum: 0
+          description: Seconds to wait when supplied.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    UpstreamFailure:
+      description: Target or rendering engine failed.
+      headers:
+        Retry-After:
+          schema:
+            type: integer
+            minimum: 0
+          description: Seconds to wait when supplied.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    Timeout:
+      description: Target or action timed out.
+      headers:
+        Retry-After:
+          schema:
+            type: integer
+            minimum: 0
+          description: Seconds to wait when supplied.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    Unprocessable:
+      description: Input is understood but unsupported or cannot be processed.
+      headers:
+        Retry-After:
+          schema:
+            type: integer
+            minimum: 0
+          description: Seconds to wait when supplied.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    BadRequest:
+      description: Invalid or missing input.
+      headers:
+        Retry-After:
+          schema:
+            type: integer
+            minimum: 0
+          description: Seconds to wait when supplied.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    TooLarge:
+      description: Request or stored result is too large.
+      headers:
+        Retry-After:
+          schema:
+            type: integer
+            minimum: 0
+          description: Seconds to wait when supplied.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    RateLimited:
+      description: Caller, quota, concurrency, or target-host limit reached.
+      headers:
+        Retry-After:
+          schema:
+            type: integer
+            minimum: 0
+          description: Seconds to wait when supplied.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    NotFound:
+      description: Resource not found or expired.
+      headers:
+        Retry-After:
+          schema:
+            type: integer
+            minimum: 0
+          description: Seconds to wait when supplied.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    Forbidden:
+      description: Disabled key, plan restriction, or blocked target.
+      headers:
+        Retry-After:
+          schema:
+            type: integer
+            minimum: 0
+          description: Seconds to wait when supplied.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
   securitySchemes:
     bearer:
       type: http

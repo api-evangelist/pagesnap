@@ -257,8 +257,8 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/Error'
-    UpstreamFailure:
-      description: Target or rendering engine failed.
+    Unavailable:
+      description: Capacity, facilitator, billing, or engine temporarily unavailable.
       headers:
         Retry-After:
           schema:
@@ -269,8 +269,8 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/Error'
-    Unprocessable:
-      description: Input is understood but unsupported or cannot be processed.
+    UpstreamFailure:
+      description: Target or rendering engine failed.
       headers:
         Retry-After:
           schema:
@@ -293,44 +293,8 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/Error'
-    RateLimited:
-      description: Caller, quota, concurrency, or target-host limit reached.
-      headers:
-        Retry-After:
-          schema:
-            type: integer
-            minimum: 0
-          description: Seconds to wait when supplied.
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Error'
-    TooLarge:
-      description: Request or stored result is too large.
-      headers:
-        Retry-After:
-          schema:
-            type: integer
-            minimum: 0
-          description: Seconds to wait when supplied.
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Error'
-    Unavailable:
-      description: Capacity, facilitator, billing, or engine temporarily unavailable.
-      headers:
-        Retry-After:
-          schema:
-            type: integer
-            minimum: 0
-          description: Seconds to wait when supplied.
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Error'
-    Forbidden:
-      description: Disabled key, plan restriction, or blocked target.
+    Unprocessable:
+      description: Input is understood but unsupported or cannot be processed.
       headers:
         Retry-After:
           schema:
@@ -353,7 +317,72 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/Error'
+    TooLarge:
+      description: Request or stored result is too large.
+      headers:
+        Retry-After:
+          schema:
+            type: integer
+            minimum: 0
+          description: Seconds to wait when supplied.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    RateLimited:
+      description: Caller, quota, concurrency, or target-host limit reached.
+      headers:
+        Retry-After:
+          schema:
+            type: integer
+            minimum: 0
+          description: Seconds to wait when supplied.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    Forbidden:
+      description: Disabled key, plan restriction, or blocked target.
+      headers:
+        Retry-After:
+          schema:
+            type: integer
+            minimum: 0
+          description: Seconds to wait when supplied.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
   schemas:
+    VisualDiff:
+      type: object
+      required:
+      - ok
+      - mode
+      - percent_changed
+      - bounding_boxes
+      - diff_image
+      - urls
+      properties:
+        ok:
+          const: true
+        mode:
+          const: visual
+        percent_changed:
+          type: number
+        bounding_boxes:
+          type: array
+          items:
+            type: object
+        diff_image:
+          type: string
+          format: uri
+        urls:
+          type: array
+          items:
+            type: string
+          minItems: 2
+          maxItems: 2
     TextDiff:
       type: object
       required:
@@ -461,35 +490,6 @@ components:
               type: integer
               minimum: 100
               maximum: 599
-    VisualDiff:
-      type: object
-      required:
-      - ok
-      - mode
-      - percent_changed
-      - bounding_boxes
-      - diff_image
-      - urls
-      properties:
-        ok:
-          const: true
-        mode:
-          const: visual
-        percent_changed:
-          type: number
-        bounding_boxes:
-          type: array
-          items:
-            type: object
-        diff_image:
-          type: string
-          format: uri
-        urls:
-          type: array
-          items:
-            type: string
-          minItems: 2
-          maxItems: 2
   securitySchemes:
     bearer:
       type: http

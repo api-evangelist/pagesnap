@@ -150,121 +150,54 @@ paths:
         '403':
           $ref: '#/components/responses/Forbidden'
 components:
-  responses:
-    Unauthorized:
-      description: Missing or invalid credentials.
-      headers:
-        Retry-After:
-          schema:
-            type: integer
-            minimum: 0
-          description: Seconds to wait when supplied.
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Error'
-    UpstreamFailure:
-      description: Target or rendering engine failed.
-      headers:
-        Retry-After:
-          schema:
-            type: integer
-            minimum: 0
-          description: Seconds to wait when supplied.
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Error'
-    Unprocessable:
-      description: Input is understood but unsupported or cannot be processed.
-      headers:
-        Retry-After:
-          schema:
-            type: integer
-            minimum: 0
-          description: Seconds to wait when supplied.
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Error'
-    RateLimited:
-      description: Caller, quota, concurrency, or target-host limit reached.
-      headers:
-        Retry-After:
-          schema:
-            type: integer
-            minimum: 0
-          description: Seconds to wait when supplied.
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Error'
-    Forbidden:
-      description: Disabled key, plan restriction, or blocked target.
-      headers:
-        Retry-After:
-          schema:
-            type: integer
-            minimum: 0
-          description: Seconds to wait when supplied.
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Error'
-    Conflict:
-      description: Current resource state conflicts with the request.
-      headers:
-        Retry-After:
-          schema:
-            type: integer
-            minimum: 0
-          description: Seconds to wait when supplied.
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Error'
-    BadRequest:
-      description: Invalid or missing input.
-      headers:
-        Retry-After:
-          schema:
-            type: integer
-            minimum: 0
-          description: Seconds to wait when supplied.
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Error'
   schemas:
-    LinkGrant:
+    LinkGrantResponse:
       type: object
       required:
-      - page_url
-      - status
-      - granted_at
-      - pro_expires_at
-      - last_checked_at
-      - next_check_at
+      - ok
+      - plan
+      - grant
       properties:
-        page_url:
+        ok:
+          const: true
+        plan:
+          const: pro
+        grant:
+          $ref: '#/components/schemas/LinkGrant'
+        dashboard:
           type: string
           format: uri
-          pattern: ^https?://
-          maxLength: 4096
-        status:
+    KeyCreated:
+      type: object
+      required:
+      - ok
+      - key
+      - plan
+      - trial
+      - limits
+      additionalProperties: true
+      properties:
+        ok:
+          const: true
+        key:
+          type: string
+          writeOnly: true
+        plan:
           type: string
           enum:
-          - active
-          - missing
-          - error
-        granted_at:
-          type: integer
-        pro_expires_at:
-          type: integer
-        last_checked_at:
-          type: integer
-        next_check_at:
-          type: integer
+          - free
+          - pro
+        trial:
+          type: boolean
+        plan_expires_at:
+          type:
+          - integer
+          - 'null'
+          description: Unix milliseconds; normally seven days after creation for a trial.
+        limits:
+          type: object
+        referral_bonus:
+          type: object
     Error:
       type: object
       required:
@@ -349,37 +282,6 @@ components:
               type: integer
               minimum: 100
               maximum: 599
-    KeyCreated:
-      type: object
-      required:
-      - ok
-      - key
-      - plan
-      - trial
-      - limits
-      additionalProperties: true
-      properties:
-        ok:
-          const: true
-        key:
-          type: string
-          writeOnly: true
-        plan:
-          type: string
-          enum:
-          - free
-          - pro
-        trial:
-          type: boolean
-        plan_expires_at:
-          type:
-          - integer
-          - 'null'
-          description: Unix milliseconds; normally seven days after creation for a trial.
-        limits:
-          type: object
-        referral_bonus:
-          type: object
     Account:
       type: object
       required:
@@ -413,22 +315,120 @@ components:
           type:
           - object
           - 'null'
-    LinkGrantResponse:
+    LinkGrant:
       type: object
       required:
-      - ok
-      - plan
-      - grant
+      - page_url
+      - status
+      - granted_at
+      - pro_expires_at
+      - last_checked_at
+      - next_check_at
       properties:
-        ok:
-          const: true
-        plan:
-          const: pro
-        grant:
-          $ref: '#/components/schemas/LinkGrant'
-        dashboard:
+        page_url:
           type: string
           format: uri
+          pattern: ^https?://
+          maxLength: 4096
+        status:
+          type: string
+          enum:
+          - active
+          - missing
+          - error
+        granted_at:
+          type: integer
+        pro_expires_at:
+          type: integer
+        last_checked_at:
+          type: integer
+        next_check_at:
+          type: integer
+  responses:
+    Unauthorized:
+      description: Missing or invalid credentials.
+      headers:
+        Retry-After:
+          schema:
+            type: integer
+            minimum: 0
+          description: Seconds to wait when supplied.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    UpstreamFailure:
+      description: Target or rendering engine failed.
+      headers:
+        Retry-After:
+          schema:
+            type: integer
+            minimum: 0
+          description: Seconds to wait when supplied.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    Unprocessable:
+      description: Input is understood but unsupported or cannot be processed.
+      headers:
+        Retry-After:
+          schema:
+            type: integer
+            minimum: 0
+          description: Seconds to wait when supplied.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    BadRequest:
+      description: Invalid or missing input.
+      headers:
+        Retry-After:
+          schema:
+            type: integer
+            minimum: 0
+          description: Seconds to wait when supplied.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    Conflict:
+      description: Current resource state conflicts with the request.
+      headers:
+        Retry-After:
+          schema:
+            type: integer
+            minimum: 0
+          description: Seconds to wait when supplied.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    RateLimited:
+      description: Caller, quota, concurrency, or target-host limit reached.
+      headers:
+        Retry-After:
+          schema:
+            type: integer
+            minimum: 0
+          description: Seconds to wait when supplied.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    Forbidden:
+      description: Disabled key, plan restriction, or blocked target.
+      headers:
+        Retry-After:
+          schema:
+            type: integer
+            minimum: 0
+          description: Seconds to wait when supplied.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
   securitySchemes:
     bearer:
       type: http

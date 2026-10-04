@@ -319,6 +319,70 @@ components:
               type: string
             message:
               type: string
+    CrawlResult:
+      type: object
+      required:
+      - pages
+      - stats
+      - robots
+      properties:
+        pages:
+          type: array
+          items:
+            $ref: '#/components/schemas/CrawlPage'
+        stats:
+          type: object
+          additionalProperties: true
+        robots:
+          type: object
+          additionalProperties: true
+    CrawlPage:
+      type: object
+      additionalProperties: true
+      properties:
+        url:
+          type: string
+        finalUrl:
+          type: string
+        title:
+          type: string
+        depth:
+          type: integer
+        markdown:
+          type: string
+    LlmsTxtResult:
+      type: object
+      required:
+      - llms_txt
+      - llms_full_txt
+      - pages
+      - stats
+      - robots
+      properties:
+        llms_txt:
+          type: string
+        llms_full_txt:
+          type: string
+        pages:
+          type: array
+          items:
+            $ref: '#/components/schemas/CrawlPage'
+        stats:
+          type: object
+          additionalProperties: true
+        robots:
+          type: object
+          additionalProperties: true
+    CrawlAccepted:
+      type: object
+      required:
+      - job_id
+      - status_url
+      properties:
+        job_id:
+          type: string
+        status_url:
+          type: string
     Error:
       type: object
       required:
@@ -403,73 +467,21 @@ components:
               type: integer
               minimum: 100
               maximum: 599
-    CrawlAccepted:
-      type: object
-      required:
-      - job_id
-      - status_url
-      properties:
-        job_id:
-          type: string
-        status_url:
-          type: string
-    LlmsTxtResult:
-      type: object
-      required:
-      - llms_txt
-      - llms_full_txt
-      - pages
-      - stats
-      - robots
-      properties:
-        llms_txt:
-          type: string
-        llms_full_txt:
-          type: string
-        pages:
-          type: array
-          items:
-            $ref: '#/components/schemas/CrawlPage'
-        stats:
-          type: object
-          additionalProperties: true
-        robots:
-          type: object
-          additionalProperties: true
-    CrawlPage:
-      type: object
-      additionalProperties: true
-      properties:
-        url:
-          type: string
-        finalUrl:
-          type: string
-        title:
-          type: string
-        depth:
-          type: integer
-        markdown:
-          type: string
-    CrawlResult:
-      type: object
-      required:
-      - pages
-      - stats
-      - robots
-      properties:
-        pages:
-          type: array
-          items:
-            $ref: '#/components/schemas/CrawlPage'
-        stats:
-          type: object
-          additionalProperties: true
-        robots:
-          type: object
-          additionalProperties: true
   responses:
     Unauthorized:
       description: Missing or invalid credentials.
+      headers:
+        Retry-After:
+          schema:
+            type: integer
+            minimum: 0
+          description: Seconds to wait when supplied.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    Unavailable:
+      description: Capacity, facilitator, billing, or engine temporarily unavailable.
       headers:
         Retry-After:
           schema:
@@ -492,18 +504,6 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/Error'
-    Unprocessable:
-      description: Input is understood but unsupported or cannot be processed.
-      headers:
-        Retry-After:
-          schema:
-            type: integer
-            minimum: 0
-          description: Seconds to wait when supplied.
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Error'
     Timeout:
       description: Target or action timed out.
       headers:
@@ -516,8 +516,32 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/Error'
-    RateLimited:
-      description: Caller, quota, concurrency, or target-host limit reached.
+    Unprocessable:
+      description: Input is understood but unsupported or cannot be processed.
+      headers:
+        Retry-After:
+          schema:
+            type: integer
+            minimum: 0
+          description: Seconds to wait when supplied.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    BadRequest:
+      description: Invalid or missing input.
+      headers:
+        Retry-After:
+          schema:
+            type: integer
+            minimum: 0
+          description: Seconds to wait when supplied.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    Conflict:
+      description: Current resource state conflicts with the request.
       headers:
         Retry-After:
           schema:
@@ -552,8 +576,8 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/Error'
-    Unavailable:
-      description: Capacity, facilitator, billing, or engine temporarily unavailable.
+    RateLimited:
+      description: Caller, quota, concurrency, or target-host limit reached.
       headers:
         Retry-After:
           schema:
@@ -578,30 +602,6 @@ components:
             $ref: '#/components/schemas/Error'
     Internal:
       description: Internal failure.
-      headers:
-        Retry-After:
-          schema:
-            type: integer
-            minimum: 0
-          description: Seconds to wait when supplied.
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Error'
-    Conflict:
-      description: Current resource state conflicts with the request.
-      headers:
-        Retry-After:
-          schema:
-            type: integer
-            minimum: 0
-          description: Seconds to wait when supplied.
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Error'
-    BadRequest:
-      description: Invalid or missing input.
       headers:
         Retry-After:
           schema:

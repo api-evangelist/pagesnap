@@ -253,6 +253,19 @@ paths:
               schema:
                 type: string
 components:
+  responses:
+    NotFound:
+      description: Resource not found or expired.
+      headers:
+        Retry-After:
+          schema:
+            type: integer
+            minimum: 0
+          description: Seconds to wait when supplied.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
   schemas:
     Error:
       type: object
@@ -338,19 +351,6 @@ components:
               type: integer
               minimum: 100
               maximum: 599
-  responses:
-    NotFound:
-      description: Resource not found or expired.
-      headers:
-        Retry-After:
-          schema:
-            type: integer
-            minimum: 0
-          description: Seconds to wait when supplied.
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Error'
   securitySchemes:
     bearer:
       type: http

@@ -110,6 +110,24 @@ paths:
           $ref: '#/components/responses/RateLimited'
 components:
   schemas:
+    SupportTicketResponse:
+      type: object
+      required:
+      - ok
+      - ticket
+      additionalProperties: true
+      properties:
+        ok:
+          const: true
+        ticket_url:
+          type: string
+        ticket:
+          type: object
+          additionalProperties: true
+        messages:
+          type: array
+          items:
+            type: object
     SupportInput:
       type: object
       additionalProperties: false
@@ -225,25 +243,19 @@ components:
               type: integer
               minimum: 100
               maximum: 599
-    SupportTicketResponse:
-      type: object
-      required:
-      - ok
-      - ticket
-      additionalProperties: true
-      properties:
-        ok:
-          const: true
-        ticket_url:
-          type: string
-        ticket:
-          type: object
-          additionalProperties: true
-        messages:
-          type: array
-          items:
-            type: object
   responses:
+    BadRequest:
+      description: Invalid or missing input.
+      headers:
+        Retry-After:
+          schema:
+            type: integer
+            minimum: 0
+          description: Seconds to wait when supplied.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
     RateLimited:
       description: Caller, quota, concurrency, or target-host limit reached.
       headers:
@@ -258,18 +270,6 @@ components:
             $ref: '#/components/schemas/Error'
     NotFound:
       description: Resource not found or expired.
-      headers:
-        Retry-After:
-          schema:
-            type: integer
-            minimum: 0
-          description: Seconds to wait when supplied.
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Error'
-    BadRequest:
-      description: Invalid or missing input.
       headers:
         Retry-After:
           schema:

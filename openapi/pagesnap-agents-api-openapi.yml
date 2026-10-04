@@ -139,6 +139,18 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/Error'
+    UnsupportedMedia:
+      description: Unsupported request content type.
+      headers:
+        Retry-After:
+          schema:
+            type: integer
+            minimum: 0
+          description: Seconds to wait when supplied.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
     TooLarge:
       description: Request or stored result is too large.
       headers:
@@ -187,18 +199,6 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/Error'
-    UnsupportedMedia:
-      description: Unsupported request content type.
-      headers:
-        Retry-After:
-          schema:
-            type: integer
-            minimum: 0
-          description: Seconds to wait when supplied.
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Error'
   schemas:
     JsonRpcResponse:
       type: object
@@ -217,6 +217,20 @@ components:
               type: integer
             message:
               type: string
+    JsonRpcRequest:
+      type: object
+      required:
+      - jsonrpc
+      - id
+      - method
+      properties:
+        jsonrpc:
+          const: '2.0'
+        id: {}
+        method:
+          type: string
+        params:
+          type: object
     Error:
       type: object
       required:
@@ -301,20 +315,6 @@ components:
               type: integer
               minimum: 100
               maximum: 599
-    JsonRpcRequest:
-      type: object
-      required:
-      - jsonrpc
-      - id
-      - method
-      properties:
-        jsonrpc:
-          const: '2.0'
-        id: {}
-        method:
-          type: string
-        params:
-          type: object
   securitySchemes:
     bearer:
       type: http
