@@ -86,21 +86,6 @@ paths:
                 additionalProperties: true
 components:
   schemas:
-    StatusRatio:
-      type: object
-      required:
-      - percent
-      - total
-      - ok
-      properties:
-        percent:
-          type:
-          - number
-          - 'null'
-        total:
-          type: integer
-        ok:
-          type: integer
     Status:
       type: object
       required:
@@ -157,6 +142,21 @@ components:
           type:
           - object
           - 'null'
+    StatusRatio:
+      type: object
+      required:
+      - percent
+      - total
+      - ok
+      properties:
+        percent:
+          type:
+          - number
+          - 'null'
+        total:
+          type: integer
+        ok:
+          type: integer
   securitySchemes:
     bearer:
       type: http

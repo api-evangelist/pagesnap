@@ -110,24 +110,6 @@ paths:
           $ref: '#/components/responses/RateLimited'
 components:
   schemas:
-    SupportTicketResponse:
-      type: object
-      required:
-      - ok
-      - ticket
-      additionalProperties: true
-      properties:
-        ok:
-          const: true
-        ticket_url:
-          type: string
-        ticket:
-          type: object
-          additionalProperties: true
-        messages:
-          type: array
-          items:
-            type: object
     SupportInput:
       type: object
       additionalProperties: false
@@ -243,9 +225,27 @@ components:
               type: integer
               minimum: 100
               maximum: 599
+    SupportTicketResponse:
+      type: object
+      required:
+      - ok
+      - ticket
+      additionalProperties: true
+      properties:
+        ok:
+          const: true
+        ticket_url:
+          type: string
+        ticket:
+          type: object
+          additionalProperties: true
+        messages:
+          type: array
+          items:
+            type: object
   responses:
-    BadRequest:
-      description: Invalid or missing input.
+    RateLimited:
+      description: Caller, quota, concurrency, or target-host limit reached.
       headers:
         Retry-After:
           schema:
@@ -256,8 +256,8 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/Error'
-    RateLimited:
-      description: Caller, quota, concurrency, or target-host limit reached.
+    BadRequest:
+      description: Invalid or missing input.
       headers:
         Retry-After:
           schema:
